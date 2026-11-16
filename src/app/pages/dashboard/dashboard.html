@@ -1,0 +1,1056 @@
+<div class="dashboard">
+
+  <!-- =========================================
+       PAGE HEADER
+       ========================================= -->
+
+  <section class="welcome-section">
+
+    <div class="welcome-content">
+
+      <span class="eyebrow">
+        SUPPLY CHAIN OVERVIEW
+      </span>
+
+      <h2>
+        Welcome back, Admin
+      </h2>
+
+      <p>
+        Here's what's happening across your supply chain today.
+      </p>
+
+    </div>
+
+
+    <div class="date-card">
+
+      <span>Today</span>
+
+      <strong>
+        {{ currentDate }}
+      </strong>
+
+      <small *ngIf="currentTime">
+        {{ currentTime }}
+      </small>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================
+       ERROR MESSAGE
+       ========================================= -->
+
+  <div
+    *ngIf="errorMessage"
+    class="dashboard-card"
+    style="margin-bottom: 24px;"
+  >
+
+    <p>
+      {{ errorMessage }}
+    </p>
+
+    <button
+      type="button"
+      (click)="loadDashboard()"
+    >
+      Try Again
+    </button>
+
+  </div>
+
+
+  <!-- =========================================
+       KPI CARDS
+       ========================================= -->
+
+  <section class="kpi-grid">
+
+
+    <!-- USERS -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+
+            <path
+              d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"
+            ></path>
+
+            <circle
+              cx="9"
+              cy="7"
+              r="4"
+            ></circle>
+
+            <path
+              d="M22 21v-2a4 4 0 0 0-3-3.87"
+            ></path>
+
+            <path
+              d="M16 3.13a4 4 0 0 1 0 7.75"
+            ></path>
+
+          </svg>
+
+        </div>
+
+        <span
+          *ngIf="loading"
+          class="trend"
+        >
+          Loading...
+        </span>
+
+      </div>
+
+
+      <span class="kpi-label">
+        Total Users
+      </span>
+
+
+      <strong class="kpi-value">
+
+        <ng-container *ngIf="!loading; else usersLoading">
+          {{ totalUsers === null ? '—' : (totalUsers | number) }}
+        </ng-container>
+
+        <ng-template #usersLoading>
+          —
+        </ng-template>
+
+      </strong>
+
+
+      <span class="kpi-description">
+        Registered platform users
+      </span>
+
+
+    </div>
+
+
+
+    <!-- MANUFACTURERS -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+
+            <path d="M3 21h18"></path>
+
+            <path
+              d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"
+            ></path>
+
+            <path d="M9 7h1"></path>
+            <path d="M14 7h1"></path>
+
+            <path d="M9 11h1"></path>
+            <path d="M14 11h1"></path>
+
+            <path d="M9 15h1"></path>
+            <path d="M14 15h1"></path>
+
+          </svg>
+
+        </div>
+
+      </div>
+
+
+      <span class="kpi-label">
+        Manufacturers
+      </span>
+
+
+      <strong class="kpi-value">
+
+        <ng-container
+          *ngIf="!loading; else manufacturersLoading"
+        >
+          {{ totalManufacturers | number }}
+        </ng-container>
+
+        <ng-template #manufacturersLoading>
+          —
+        </ng-template>
+
+      </strong>
+
+
+      <span class="kpi-description">
+        Registered manufacturers
+      </span>
+
+    </div>
+
+
+
+    <!-- DISTRIBUTORS -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+
+            <path d="M3 7h11v10H3z"></path>
+            <path d="M14 10h4l3 3v4h-7z"></path>
+            <circle cx="7.5" cy="18" r="1.5"></circle>
+            <circle cx="17.5" cy="18" r="1.5"></circle>
+
+          </svg>
+
+        </div>
+
+      </div>
+
+
+      <span class="kpi-label">
+        Distributors
+      </span>
+
+
+      <strong class="kpi-value">
+
+        <ng-container
+          *ngIf="!loading; else distributorsLoading"
+        >
+          {{ totalDistributors | number }}
+        </ng-container>
+
+        <ng-template #distributorsLoading>
+          —
+        </ng-template>
+
+      </strong>
+
+
+      <span class="kpi-description">
+        Registered distributors
+      </span>
+
+
+    </div>
+
+
+
+    <!-- PRODUCTS -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+
+            <path
+              d="m21 8-9-5-9 5 9 5 9-5Z"
+            ></path>
+
+            <path
+              d="m3 12 9 5 9-5"
+            ></path>
+
+            <path
+              d="m3 16 9 5 9-5"
+            ></path>
+
+          </svg>
+
+        </div>
+
+      </div>
+
+
+      <span class="kpi-label">
+        Products
+      </span>
+
+
+      <strong class="kpi-value">
+
+        <ng-container *ngIf="!loading; else productsLoading">
+          {{ totalProducts | number }}
+        </ng-container>
+
+        <ng-template #productsLoading>
+          —
+        </ng-template>
+
+      </strong>
+
+
+      <span class="kpi-description">
+        Products across the platform
+      </span>
+
+
+    </div>
+
+
+
+    <!-- LOW STOCK -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-icon">
+
+          <svg
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+
+            <path d="M3 3v18h18"></path>
+
+            <path
+              d="m7 16 4-5 3 3 5-7"
+            ></path>
+
+          </svg>
+
+        </div>
+
+      </div>
+
+
+      <span class="kpi-label">
+        Low Stock Alerts
+      </span>
+
+
+      <strong class="kpi-value">
+
+        <ng-container *ngIf="!loading; else stockLoading">
+          {{ lowStockProducts | number }}
+        </ng-container>
+
+        <ng-template #stockLoading>
+          —
+        </ng-template>
+
+      </strong>
+
+
+      <span class="kpi-description">
+        Products requiring attention
+      </span>
+
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =========================================
+       ANALYTICS
+       ========================================= -->
+
+  <section class="analytics-grid">
+
+
+    <!-- ORDERS OVERVIEW -->
+
+    <div class="dashboard-card orders-chart">
+
+      <div class="card-heading">
+
+        <div>
+
+          <h3>
+            Orders Overview
+          </h3>
+
+          <p>
+            Live order activity across the platform
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="chart-area">
+
+        <div class="y-axis">
+
+          <span>Total</span>
+          <span>Pending</span>
+
+        </div>
+
+
+        <div class="chart">
+
+          <div class="grid-line"></div>
+          <div class="grid-line"></div>
+          <div class="grid-line"></div>
+          <div class="grid-line"></div>
+
+
+          <div
+            class="chart-bars"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 70px;
+              height: 100%;
+            "
+          >
+
+            <div class="bar-column">
+
+              <div
+                class="bar active-bar"
+                [style.height.%]="getOrderBarHeight(totalOrders)"
+              ></div>
+
+              <span>
+                Total Orders
+              </span>
+
+              <strong>
+                {{ totalOrders | number }}
+              </strong>
+
+            </div>
+
+
+            <div class="bar-column">
+
+              <div
+                class="bar"
+                [style.height.%]="getOrderBarHeight(pendingOrders)"
+              ></div>
+
+              <span>
+                Pending
+              </span>
+
+              <strong>
+                {{ pendingOrders | number }}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- PLATFORM ACTIVITY -->
+
+    <div class="dashboard-card category-card">
+
+      <div class="card-heading">
+
+        <div>
+
+          <h3>
+            Platform Activity
+          </h3>
+
+          <p>
+            Current live platform metrics
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="category-content">
+
+
+        <div
+          class="donut"
+          [style.background]="getActivityGradient()"
+        >
+
+          <div class="donut-center">
+
+            <strong>
+              {{ totalProducts | number }}
+            </strong>
+
+            <span>
+              Products
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div class="legend">
+
+
+          <div>
+
+            <span class="legend-dot blue-dot"></span>
+
+            <span>
+              Total Orders
+            </span>
+
+            <strong>
+              {{ totalOrders | number }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span class="legend-dot green-dot"></span>
+
+            <span>
+              Pending Orders
+            </span>
+
+            <strong>
+              {{ pendingOrders | number }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span class="legend-dot orange-dot"></span>
+
+            <span>
+              Payments
+            </span>
+
+            <strong>
+              {{ totalPayments | number }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span class="legend-dot purple-dot"></span>
+
+            <span>
+              Trips
+            </span>
+
+            <strong>
+              {{ totalTrips | number }}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <span class="legend-dot red-dot"></span>
+
+            <span>
+              Low Stock
+            </span>
+
+            <strong>
+              {{ lowStockProducts | number }}
+            </strong>
+
+          </div>
+
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+
+  <!-- =========================================
+       BOTTOM SECTION
+       ========================================= -->
+
+  <section class="bottom-grid">
+
+
+    <!-- ORDERS -->
+
+    <div class="dashboard-card">
+
+      <div class="card-heading">
+
+        <div>
+
+          <h3>
+            Order Activity
+          </h3>
+
+          <p>
+            Current order statistics from the platform
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="orders-list">
+
+
+        <div class="order-row">
+
+          <div>
+
+            <strong>
+              Total Orders
+            </strong>
+
+            <span>
+              All orders currently recorded
+            </span>
+
+          </div>
+
+
+          <span>
+            {{ totalOrders | number }}
+          </span>
+
+
+          <strong>
+            {{ totalOrders | number }}
+          </strong>
+
+
+          <span class="status delivered">
+            Recorded
+          </span>
+
+        </div>
+
+
+
+        <div class="order-row">
+
+          <div>
+
+            <strong>
+              Pending Orders
+            </strong>
+
+            <span>
+              Orders awaiting processing
+            </span>
+
+          </div>
+
+
+          <span>
+            {{ pendingOrders | number }}
+          </span>
+
+
+          <strong>
+            {{ pendingOrders | number }}
+          </strong>
+
+
+          <span class="status processing">
+            Pending
+          </span>
+
+        </div>
+
+
+
+        <div class="order-row">
+
+          <div>
+
+            <strong>
+              Payments
+            </strong>
+
+            <span>
+              Payment records on the platform
+            </span>
+
+          </div>
+
+
+          <span>
+            —
+          </span>
+
+
+          <strong>
+            {{ totalPayments | number }}
+          </strong>
+
+
+          <span class="status transit">
+            Recorded
+          </span>
+
+        </div>
+
+
+
+        <div class="order-row">
+
+          <div>
+
+            <strong>
+              Trips
+            </strong>
+
+            <span>
+              Recorded supply-chain trips
+            </span>
+
+          </div>
+
+
+          <span>
+            —
+          </span>
+
+
+          <strong>
+            {{ totalTrips | number }}
+          </strong>
+
+
+          <span class="status delivered">
+            Recorded
+          </span>
+
+        </div>
+
+
+      </div>
+
+    </div>
+
+
+
+    <!-- LOW STOCK -->
+
+    <div class="dashboard-card">
+
+      <div class="card-heading">
+
+        <div>
+
+          <h3>
+            Low Stock Alerts
+          </h3>
+
+          <p>
+            Products requiring attention
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="stock-list">
+
+
+        <div class="stock-row">
+
+          <div class="stock-product">
+
+            <div class="stock-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+
+                <path
+                  d="M5 12a7 7 0 0 1 14 0"
+                ></path>
+
+                <path
+                  d="M5 12v3"
+                ></path>
+
+                <path
+                  d="M19 12v3"
+                ></path>
+
+                <path
+                  d="M3 15h4v4H3z"
+                ></path>
+
+                <path
+                  d="M17 15h4v4h-4z"
+                ></path>
+
+              </svg>
+
+            </div>
+
+
+            <div>
+
+              <strong>
+                Low Stock Products
+              </strong>
+
+              <span>
+                Products requiring attention
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <strong class="stock-warning">
+
+            {{ lowStockProducts | number }} products
+
+          </strong>
+
+
+          <span class="stock-badge warning">
+
+            Attention Required
+
+          </span>
+
+        </div>
+
+
+
+        <div class="stock-row">
+
+          <div class="stock-product">
+
+            <div class="stock-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+
+                <rect
+                  x="3"
+                  y="7"
+                  width="18"
+                  height="10"
+                  rx="2"
+                ></rect>
+
+                <path d="M7 11h.01"></path>
+                <path d="M11 11h.01"></path>
+                <path d="M15 11h.01"></path>
+
+              </svg>
+
+            </div>
+
+
+            <div>
+
+              <strong>
+                Stock Monitoring
+              </strong>
+
+              <span>
+                Live inventory monitoring
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <strong class="stock-warning">
+
+            {{ lowStockProducts | number }}
+
+          </strong>
+
+
+          <span class="stock-badge warning">
+
+            Alerts
+
+          </span>
+
+        </div>
+
+
+
+        <div class="stock-row">
+
+          <div class="stock-product">
+
+            <div class="stock-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+
+                <rect
+                  x="7"
+                  y="4"
+                  width="10"
+                  height="16"
+                  rx="2"
+                ></rect>
+
+                <path d="M10 7h4"></path>
+                <path d="M10 17h4"></path>
+
+              </svg>
+
+            </div>
+
+
+            <div>
+
+              <strong>
+                Total Products
+              </strong>
+
+              <span>
+                Products currently recorded
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <strong>
+            {{ totalProducts | number }}
+          </strong>
+
+
+          <span class="stock-badge delivered">
+            Recorded
+          </span>
+
+        </div>
+
+
+
+        <div class="stock-row">
+
+          <div class="stock-product">
+
+            <div class="stock-icon">
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+
+                <rect
+                  x="4"
+                  y="6"
+                  width="16"
+                  height="10"
+                  rx="1"
+                ></rect>
+
+                <path d="M7 20h10"></path>
+                <path d="M9 16v4"></path>
+                <path d="M15 16v4"></path>
+
+              </svg>
+
+            </div>
+
+
+            <div>
+
+              <strong>
+                Stock Units
+              </strong>
+
+              <span>
+                Total stock quantity
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <strong>
+
+            <ng-container *ngIf="!loading; else stockUnavailable">
+              {{ totalStockUnits === null ? '—' : (totalStockUnits | number) }}
+            </ng-container>
+
+            <ng-template #stockUnavailable>
+              —
+            </ng-template>
+
+          </strong>
+
+
+          <span class="stock-badge">
+            {{ totalStockUnits === null && !loading ? 'Unavailable' : 'Inventory' }}
+
+          </span>
+
+        </div>
+
+
+      </div>
+
+    </div>
+
+  </section>
+
+</div>

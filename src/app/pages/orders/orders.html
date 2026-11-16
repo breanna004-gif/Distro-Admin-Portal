@@ -1,0 +1,786 @@
+<div class="orders-page">
+
+  <!-- ==========================================
+       PAGE HEADER
+       ========================================== -->
+
+  <div class="page-header">
+
+    <div>
+      <span class="eyebrow">
+        ORDER MANAGEMENT
+      </span>
+
+      <h2>
+        Orders
+      </h2>
+
+      <p>
+        Monitor and manage customer orders across the supply chain.
+      </p>
+    </div>
+
+  </div>
+
+  <app-report-download
+    title="Orders Report"
+    filename="orders-report"
+    [columns]="reportColumns"
+    [data]="reportData"
+  ></app-report-download>
+
+
+  <!-- ==========================================
+       KPI CARDS
+       ========================================== -->
+
+  <div class="stats-grid">
+
+    <div class="stat-card blue">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          O
+        </div>
+
+        <span class="trend">
+          Platform
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Total Orders
+      </span>
+
+      <strong>
+        {{ totalOrders }}
+      </strong>
+
+      <span class="stat-note">
+        All registered orders
+      </span>
+
+    </div>
+
+
+    <div class="stat-card green">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          ✓
+        </div>
+
+        <span class="trend">
+          Active
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Active Orders
+      </span>
+
+      <strong>
+        {{
+          totalOrders - pendingOrders
+        }}
+      </strong>
+
+      <span class="stat-note">
+        Currently processing
+      </span>
+
+    </div>
+
+
+    <div class="stat-card orange">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          P
+        </div>
+
+        <span class="trend neutral">
+          Attention
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Pending Orders
+      </span>
+
+      <strong>
+        {{
+          totalOrders - (totalOrders - pendingOrders)
+        }}
+      </strong>
+
+      <span class="stat-note">
+        Awaiting confirmation
+      </span>
+
+    </div>
+
+
+    <div class="stat-card purple">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          K
+        </div>
+
+        <span class="trend">
+          Revenue
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Order Value
+      </span>
+
+      <strong>
+        KES {{ getTotalOrderValue() | number }}
+      </strong>
+
+      <span class="stat-note">
+        Total order value
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==========================================
+       ORDERS CARD
+       ========================================== -->
+
+  <div class="orders-card">
+
+    <!-- Table Header -->
+
+    <div class="table-header">
+
+      <div>
+
+        <h3>
+          All Orders
+        </h3>
+
+        <p>
+          View and manage customer orders.
+        </p>
+
+      </div>
+
+
+      <div class="table-actions">
+
+        <div class="search-box">
+
+          <span>
+            ⌕
+          </span>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="searchOrders()"
+            placeholder="Search orders..."
+          />
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         TABLE
+         ========================================== -->
+
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Order
+            </th>
+
+            <th>
+              Customer
+            </th>
+
+            <th>
+              Organization
+            </th>
+
+            <th>
+              Items
+            </th>
+
+            <th>
+              Amount
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Payment
+            </th>
+
+            <th>
+              Date
+            </th>
+
+            <th>
+              Action
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          @if (loading) {
+
+            <tr>
+
+              <td
+                colspan="9"
+                class="empty-state"
+              >
+                Loading orders...
+              </td>
+
+            </tr>
+
+          }
+
+          @else if (orders.length === 0) {
+
+            <tr>
+
+              <td
+                colspan="9"
+                class="empty-state"
+              >
+                No orders found.
+              </td>
+
+            </tr>
+
+          }
+
+          @else {
+
+            @for (
+              order of orders;
+              track order.id
+            ) {
+
+              <tr>
+
+                <!-- Order -->
+
+                <td>
+
+                  <div class="order-cell">
+
+                    <div class="order-avatar">
+                      {{ order.id.substring(4, 5) }}
+                    </div>
+
+                    <div class="order-details">
+
+                      <strong>
+                        {{ order.id }}
+                      </strong>
+
+                      <span>
+                        {{ order.itemCount }} item{{ order.itemCount === 1 ? '' : 's' }}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </td>
+
+
+                <!-- Customer -->
+
+                <td>
+
+                  <div class="customer-cell">
+
+                    <strong>
+                      {{ order.customerName }}
+                    </strong>
+
+                    <span>
+                      {{ order.customerEmail || 'No email' }}
+                    </span>
+
+                  </div>
+
+                </td>
+
+
+                <!-- Organization -->
+
+                <td>
+
+                  {{ order.organizationName || 'Independent' }}
+
+                </td>
+
+
+                <!-- Items -->
+
+                <td>
+
+                  <span class="item-count">
+                    {{ order.itemCount }}
+                  </span>
+
+                </td>
+
+
+                <!-- Amount -->
+
+                <td>
+
+                  <strong class="amount">
+                    KES {{ order.totalAmount | number }}
+                  </strong>
+
+                </td>
+
+
+                <!-- Status -->
+
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [ngClass]="getStatusClass(order.status)"
+                  >
+                    {{ order.status.replace('_', ' ') }}
+                  </span>
+
+                </td>
+
+
+                <!-- Payment -->
+
+                <td>
+
+                  <span
+                    class="payment-badge"
+                    [ngClass]="getPaymentStatusClass(order.paymentStatus)"
+                  >
+                    {{ order.paymentStatus.replace('_', ' ') }}
+                  </span>
+
+                </td>
+
+
+                <!-- Date -->
+
+                <td>
+
+                  <span class="order-date">
+                    {{ order.orderDate }}
+                  </span>
+
+                </td>
+
+
+                <!-- Action -->
+
+                <td>
+
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="viewOrder(order.id)"
+                  >
+                    View
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- ==========================================
+         PAGINATION
+         ========================================== -->
+
+    <div class="pagination">
+
+      <span>
+        Showing {{ orders.length }}
+        of {{ totalElements }} orders
+      </span>
+
+
+      <div>
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+        >
+          ‹
+        </button>
+
+
+        <button
+          type="button"
+          class="page-button active"
+        >
+          {{ currentPage + 1 }}
+        </button>
+
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+        >
+          ›
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ==========================================
+     VIEW ORDER MODAL
+     ========================================== -->
+
+@if (showViewOrderModal) {
+
+  <div
+    class="modal-overlay"
+    (click)="closeViewOrderModal()"
+  >
+
+    <div
+      class="modal-card"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- Modal Header -->
+
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            ORDER DETAILS
+          </span>
+
+          <h3>
+            {{ selectedOrder?.id || 'Order' }}
+          </h3>
+
+          <p>
+            Review order information and current status.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeViewOrderModal()"
+          [disabled]="loadingOrder"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      @if (loadingOrder) {
+
+        <div class="details-loading">
+          Loading order details...
+        </div>
+
+      }
+
+      @else if (viewOrderError) {
+
+        <div class="modal-error">
+          {{ viewOrderError }}
+        </div>
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeViewOrderModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+      @else if (selectedOrder) {
+
+        <!-- Order Summary -->
+
+        <div class="order-profile">
+
+          <div class="large-order-avatar">
+            O
+          </div>
+
+          <div>
+
+            <h4>
+              {{ selectedOrder.id }}
+            </h4>
+
+            <p>
+              {{ selectedOrder.customerName }}
+            </p>
+
+            <span
+              class="status-badge"
+              [ngClass]="getStatusClass(selectedOrder.status)"
+            >
+              {{ selectedOrder.status.replace('_', ' ') }}
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- Financial Overview -->
+
+        <div class="order-overview">
+
+          <div class="overview-box">
+
+            <span>
+              Order Value
+            </span>
+
+            <strong>
+              KES {{ selectedOrder.totalAmount | number }}
+            </strong>
+
+          </div>
+
+
+          <div class="overview-box">
+
+            <span>
+              Items
+            </span>
+
+            <strong>
+              {{ selectedOrder.itemCount }}
+            </strong>
+
+          </div>
+
+
+          <div class="overview-box">
+
+            <span>
+              Payment
+            </span>
+
+            <strong>
+              {{ selectedOrder.paymentStatus }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- Order Information -->
+
+        <div class="details-section">
+
+          <h4>
+            Order Information
+          </h4>
+
+
+          <div class="details-grid">
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Customer
+              </span>
+
+              <strong>
+                {{ selectedOrder.customerName }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Email
+              </span>
+
+              <strong>
+                {{ selectedOrder.customerEmail || 'Not provided' }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Organization
+              </span>
+
+              <strong>
+                {{ selectedOrder.organizationName || 'Independent' }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Order Date
+              </span>
+
+              <strong>
+                {{ selectedOrder.orderDate }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Delivery Address
+              </span>
+
+              <strong>
+                {{ selectedOrder.deliveryAddress || 'Not provided' }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Delivery Status
+              </span>
+
+              <strong>
+                {{ selectedOrder.deliveryStatus.replace('_', ' ') }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Payment Status
+              </span>
+
+              <strong>
+                {{ selectedOrder.paymentStatus }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Order Status
+              </span>
+
+              <strong>
+                {{ selectedOrder.status.replace('_', ' ') }}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- Modal Footer -->
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeViewOrderModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+}

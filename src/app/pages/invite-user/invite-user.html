@@ -1,0 +1,232 @@
+<div class="invite-page">
+
+  <div class="page-header">
+
+    <div>
+
+      <span class="eyebrow">
+        USER MANAGEMENT
+      </span>
+
+      <h2>
+        Invite User
+      </h2>
+
+      <p>
+        Invite a staff member or driver to join the platform.
+      </p>
+
+    </div>
+
+    <button
+      type="button"
+      class="secondary-button"
+      (click)="cancel()"
+    >
+      Cancel
+    </button>
+
+  </div>
+
+
+  <div class="invite-card">
+
+    <div class="card-header">
+
+      <div class="icon">
+        +
+      </div>
+
+      <div>
+
+        <h3>
+          Create an invitation
+        </h3>
+
+        <p>
+          The invited user will receive instructions
+          to complete their account setup.
+        </p>
+
+      </div>
+
+    </div>
+
+
+    @if (errorMessage) {
+
+      <div class="message error">
+        {{ errorMessage }}
+      </div>
+
+    }
+
+
+    @if (successMessage) {
+
+      <div class="message success">
+        {{ successMessage }}
+      </div>
+
+    }
+
+
+    <form
+      (ngSubmit)="inviteUser()"
+      #inviteForm="ngForm"
+    >
+
+      <div class="form-grid">
+
+        <div class="form-group full-width">
+
+          <label for="fullName">
+            Full name
+            <span>*</span>
+          </label>
+
+          <input
+            id="fullName"
+            name="fullName"
+            type="text"
+            [(ngModel)]="fullName"
+            placeholder="Enter full name"
+            required
+          />
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="email">
+            Email address
+            <span>*</span>
+          </label>
+
+          <input
+            id="email"
+            name="email"
+            type="email"
+            [(ngModel)]="email"
+            placeholder="user@example.com"
+            required
+          />
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="phone">
+            Phone number
+          </label>
+
+          <input
+            id="phone"
+            name="phone"
+            type="tel"
+            [(ngModel)]="phone"
+            placeholder="+254 7XX XXX XXX"
+          />
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="role">
+            Role
+            <span>*</span>
+          </label>
+
+          <select
+            id="role"
+            name="role"
+            [(ngModel)]="role"
+            required
+          >
+
+            <option value="">
+              Select role
+            </option>
+
+            @for (item of roles; track item.value) {
+
+              <option [value]="item.value">
+                {{ item.label }}
+              </option>
+
+            }
+
+          </select>
+
+        </div>
+
+
+        <div class="form-group">
+
+          <label for="organization">
+            Organization
+          </label>
+
+          <input
+            id="organization"
+            name="organization"
+            type="text"
+            [(ngModel)]="organization"
+            placeholder="Organization name"
+            [disabled]="organizationDisabled"
+          />
+
+        </div>
+
+      </div>
+
+
+      <div class="form-note">
+
+        <strong>
+          Invitation process
+        </strong>
+
+        <p>
+          The user will be created through the invitation
+          workflow and will complete verification before
+          accessing the platform.
+        </p>
+
+      </div>
+
+
+      <div class="form-actions">
+
+        <button
+          type="button"
+          class="cancel-button"
+          (click)="cancel()"
+        >
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="primary-button"
+          [disabled]="loading"
+        >
+
+          @if (loading) {
+            Preparing invitation...
+          } @else {
+            Send invitation
+          }
+
+        </button>
+
+      </div>
+
+    </form>
+
+  </div>
+
+</div>

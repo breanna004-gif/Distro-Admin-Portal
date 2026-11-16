@@ -1,0 +1,1041 @@
+<div class="notifications-page">
+
+  <!-- ==========================================
+       PAGE HEADER
+  =========================================== -->
+
+  <div class="page-header">
+
+    <div>
+      <h1>Notifications</h1>
+
+      <p>
+        Monitor important events, alerts, and system activity across the platform.
+      </p>
+    </div>
+
+    @if (getUnreadCount() > 0) {
+
+      <button
+        type="button"
+        class="mark-all-button"
+        (click)="markAllAsRead()"
+      >
+        Mark all as read
+      </button>
+
+    }
+
+  </div>
+
+
+  <!-- ==========================================
+       ERROR MESSAGE
+  =========================================== -->
+
+  @if (errorMessage) {
+
+    <div class="alert alert-error">
+
+      <span class="alert-icon">
+        !
+      </span>
+
+      <span>
+        {{ errorMessage }}
+      </span>
+
+      <button
+        type="button"
+        class="alert-action"
+        (click)="loadNotifications()"
+      >
+        Retry
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- ==========================================
+       STATISTICS
+  =========================================== -->
+
+  <div class="stats-grid">
+
+
+    <!-- Total -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon total-icon">
+        N
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Total Notifications
+        </span>
+
+        <strong class="stat-value">
+          {{ getTotalNotificationCount() }}
+        </strong>
+
+        <span class="stat-description">
+          All platform notifications
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- Unread -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon unread-icon">
+        !
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Unread
+        </span>
+
+        <strong class="stat-value">
+          {{ getUnreadCount() }}
+        </strong>
+
+        <span class="stat-description">
+          Requiring your attention
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- High Priority -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon priority-icon">
+        ↑
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          High Priority
+        </span>
+
+        <strong class="stat-value">
+          {{ getHighPriorityCount() }}
+        </strong>
+
+        <span class="stat-description">
+          High and critical alerts
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- Today -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon today-icon">
+        T
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Today
+        </span>
+
+        <strong class="stat-value">
+          {{ getTodayCount() }}
+        </strong>
+
+        <span class="stat-description">
+          Notifications received today
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==========================================
+       NOTIFICATIONS CARD
+  =========================================== -->
+
+  <div class="notifications-card">
+
+
+    <!-- ========================================
+         CARD HEADER
+    ========================================= -->
+
+    <div class="card-header">
+
+      <div>
+
+        <h2>
+          Notification Center
+        </h2>
+
+        <p>
+          View and manage platform notifications.
+        </p>
+
+      </div>
+
+      <div class="notification-count">
+
+        {{ totalElements }}
+
+        {{
+          totalElements === 1
+            ? 'notification'
+            : 'notifications'
+        }}
+
+      </div>
+
+    </div>
+
+
+    <!-- ========================================
+         FILTER BAR
+    ========================================= -->
+
+    <div class="filter-bar">
+
+
+      <!-- Search -->
+
+      <div class="search-wrapper">
+
+        <span class="search-icon">
+          ⌕
+        </span>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="searchNotifications()"
+          placeholder="Search notifications..."
+          class="search-input"
+        />
+
+        @if (searchTerm) {
+
+          <button
+            type="button"
+            class="clear-search"
+            (click)="searchTerm = ''; searchNotifications()"
+            aria-label="Clear search"
+          >
+            ×
+          </button>
+
+        }
+
+      </div>
+
+
+      <!-- Search -->
+
+      <button
+        type="button"
+        class="search-button"
+        (click)="searchNotifications()"
+      >
+        Search
+      </button>
+
+    </div>
+
+
+    <!-- ========================================
+         NOTIFICATION LIST
+    ========================================= -->
+
+    <div class="notification-list">
+
+
+      <!-- Loading -->
+
+      @if (loading) {
+
+        <div class="loading-state">
+
+          <div class="loading-spinner"></div>
+
+          <p>
+            Loading notifications...
+          </p>
+
+        </div>
+
+      }
+
+
+      <!-- Empty -->
+
+      @else if (notifications.length === 0) {
+
+        <div class="empty-state">
+
+          <div class="empty-icon">
+            N
+          </div>
+
+          <h3>
+            No notifications found
+          </h3>
+
+          <p>
+            No notifications match your search.
+          </p>
+
+          @if (searchTerm) {
+
+            <button
+              type="button"
+              class="reset-button"
+              (click)="
+                searchTerm = '';
+                searchNotifications()
+              "
+            >
+              Clear search
+            </button>
+
+          }
+
+        </div>
+
+      }
+
+
+      <!-- Notifications -->
+
+      @else {
+
+        @for (
+          notification of notifications;
+          track notification.id
+        ) {
+
+          <div
+            class="notification-item"
+            [class.unread]="notification.status === 'UNREAD'"
+            [class.critical]="notification.priority === 'CRITICAL'"
+            (click)="viewNotification(notification.id)"
+          >
+
+
+            <!-- Unread Indicator -->
+
+            <div class="unread-indicator">
+
+              @if (notification.status === 'UNREAD') {
+                <span></span>
+              }
+
+            </div>
+
+
+            <!-- Type Icon -->
+
+            <div
+              class="notification-type-icon"
+              [class.type-order]="notification.type === 'ORDER'"
+              [class.type-payment]="notification.type === 'PAYMENT'"
+              [class.type-delivery]="notification.type === 'DELIVERY'"
+              [class.type-inventory]="notification.type === 'INVENTORY'"
+              [class.type-user]="notification.type === 'USER'"
+              [class.type-security]="notification.type === 'SECURITY'"
+              [class.type-system]="notification.type === 'SYSTEM'"
+            >
+
+              @if (notification.type === 'ORDER') {
+                O
+              }
+
+              @else if (notification.type === 'PAYMENT') {
+                $
+              }
+
+              @else if (notification.type === 'DELIVERY') {
+                D
+              }
+
+              @else if (notification.type === 'INVENTORY') {
+                I
+              }
+
+              @else if (notification.type === 'USER') {
+                U
+              }
+
+              @else if (notification.type === 'SECURITY') {
+                S
+              }
+
+              @else {
+                N
+              }
+
+            </div>
+
+
+            <!-- Notification Content -->
+
+            <div class="notification-content">
+
+              <div class="notification-top">
+
+                <div class="notification-title-row">
+
+                  <h3>
+                    {{ notification.title }}
+                  </h3>
+
+                  @if (notification.status === 'UNREAD') {
+
+                    <span class="unread-label">
+                      New
+                    </span>
+
+                  }
+
+                </div>
+
+                <span class="notification-time">
+                  {{ notification.createdAt || '—' }}
+                </span>
+
+              </div>
+
+
+              <p class="notification-message">
+                {{ notification.message }}
+              </p>
+
+
+              <div class="notification-meta">
+
+
+                <!-- Type -->
+
+                <span class="type-badge">
+
+                  {{ getTypeLabel(notification.type) }}
+
+                </span>
+
+                @if (isAccessRequestApproved(notification)) {
+                  <span class="type-badge approved-label">
+                    Approved
+                  </span>
+                }
+
+
+                <!-- Priority -->
+
+                <span
+                  class="priority-badge"
+                  [class.priority-critical]="notification.priority === 'CRITICAL'"
+                  [class.priority-high]="notification.priority === 'HIGH'"
+                  [class.priority-medium]="notification.priority === 'MEDIUM'"
+                  [class.priority-low]="notification.priority === 'LOW'"
+                >
+
+                  <span class="priority-dot"></span>
+
+                  {{ getPriorityLabel(notification.priority) }}
+
+                </span>
+
+
+                <!-- Organization -->
+
+                @if (notification.organizationName) {
+
+                  <span class="organization-label">
+                    {{ notification.organizationName }}
+                  </span>
+
+                }
+
+
+                <!-- Reference -->
+
+                @if (notification.referenceId) {
+
+                  <span class="reference-label">
+                    {{ notification.referenceId }}
+                  </span>
+
+                }
+
+              </div>
+
+            </div>
+
+
+            <!-- View -->
+
+            <div class="notification-action">
+
+              <button
+                type="button"
+                class="view-button"
+                (click)="$event.stopPropagation(); viewNotification(notification.id)"
+              >
+                View
+              </button>
+
+            </div>
+
+          </div>
+
+        }
+
+      }
+
+    </div>
+
+
+    <!-- ========================================
+         PAGINATION
+    ========================================= -->
+
+    @if (notifications.length > 0) {
+
+      <div class="pagination">
+
+        <div class="pagination-info">
+
+          Showing
+          <strong>
+            {{ notifications.length }}
+          </strong>
+
+          of
+
+          <strong>
+            {{ totalElements }}
+          </strong>
+
+          notifications
+
+        </div>
+
+
+        <div class="pagination-controls">
+
+          <button
+            type="button"
+            class="pagination-button"
+            [disabled]="currentPage === 0"
+            (click)="previousPage()"
+          >
+            Previous
+          </button>
+
+          <span class="page-number">
+            Page {{ currentPage + 1 }}
+          </span>
+
+          <button
+            type="button"
+            class="pagination-button"
+            [disabled]="currentPage >= totalPages - 1"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+
+        </div>
+
+      </div>
+
+    }
+
+  </div>
+
+</div>
+
+
+<!-- ==========================================
+     VIEW NOTIFICATION MODAL
+=========================================== -->
+
+@if (showViewNotificationModal) {
+
+  <div
+    class="modal-backdrop"
+    (click)="closeViewNotificationModal()"
+  >
+
+    <div
+      class="notification-modal"
+      (click)="$event.stopPropagation()"
+    >
+
+
+      <!-- Modal Header -->
+
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            Notification Details
+          </span>
+
+          <h2>
+            {{ selectedNotification?.title || 'Notification' }}
+          </h2>
+
+        </div>
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeViewNotificationModal()"
+          [disabled]="loadingNotification"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- Modal Body -->
+
+      <div class="modal-body">
+
+        @if (loadingNotification) {
+
+          <div class="modal-loading">
+
+            <div class="loading-spinner"></div>
+
+            <p>
+              Loading notification details...
+            </p>
+
+          </div>
+
+        }
+
+        @else if (viewNotificationError) {
+
+          <div class="modal-error">
+
+            <div class="modal-error-icon">
+              !
+            </div>
+
+            <h3>
+              Unable to load notification
+            </h3>
+
+            <p>
+              {{ viewNotificationError }}
+            </p>
+
+            <button
+              type="button"
+              class="reset-button"
+              (click)="closeViewNotificationModal()"
+            >
+              Close
+            </button>
+
+          </div>
+
+        }
+
+        @else if (selectedNotification) {
+
+
+          <!-- Notification Summary -->
+
+          <div class="notification-summary">
+
+            <div
+              class="modal-type-icon"
+              [class.type-order]="selectedNotification.type === 'ORDER'"
+              [class.type-payment]="selectedNotification.type === 'PAYMENT'"
+              [class.type-delivery]="selectedNotification.type === 'DELIVERY'"
+              [class.type-inventory]="selectedNotification.type === 'INVENTORY'"
+              [class.type-user]="selectedNotification.type === 'USER'"
+              [class.type-security]="selectedNotification.type === 'SECURITY'"
+              [class.type-system]="selectedNotification.type === 'SYSTEM'"
+            >
+
+              @if (selectedNotification.type === 'ORDER') {
+                O
+              }
+
+              @else if (selectedNotification.type === 'PAYMENT') {
+                $
+              }
+
+              @else if (selectedNotification.type === 'DELIVERY') {
+                D
+              }
+
+              @else if (selectedNotification.type === 'INVENTORY') {
+                I
+              }
+
+              @else if (selectedNotification.type === 'USER') {
+                U
+              }
+
+              @else if (selectedNotification.type === 'SECURITY') {
+                S
+              }
+
+              @else {
+                N
+              }
+
+            </div>
+
+
+            <div class="summary-content">
+
+              <span class="summary-type">
+                {{ getTypeLabel(selectedNotification.type) }}
+              </span>
+
+              <strong>
+                {{ selectedNotification.title }}
+              </strong>
+
+              <span>
+                {{ selectedNotification.createdAt || '—' }}
+              </span>
+
+            </div>
+
+
+            <span
+              class="priority-badge"
+              [class.priority-critical]="selectedNotification.priority === 'CRITICAL'"
+              [class.priority-high]="selectedNotification.priority === 'HIGH'"
+              [class.priority-medium]="selectedNotification.priority === 'MEDIUM'"
+              [class.priority-low]="selectedNotification.priority === 'LOW'"
+            >
+
+              <span class="priority-dot"></span>
+
+              {{ getPriorityLabel(selectedNotification.priority) }}
+
+            </span>
+
+          </div>
+
+
+          <!-- Message -->
+
+          <div class="message-section">
+
+            <h3>
+              Message
+            </h3>
+
+            <div class="message-box">
+              {{ selectedNotification.message }}
+            </div>
+
+          </div>
+
+
+          <!-- Details -->
+
+          <div class="details-section">
+
+            <h3>
+              Notification Information
+            </h3>
+
+            <div class="details-grid">
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Notification ID
+                </span>
+
+                <strong>
+                  {{ selectedNotification.id }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Status
+                </span>
+
+                <strong
+                  [class.read-text]="selectedNotification.status === 'READ'"
+                  [class.unread-text]="selectedNotification.status === 'UNREAD'"
+                >
+                  {{
+                    selectedNotification.status === 'READ'
+                      ? 'Read'
+                      : 'Unread'
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Type
+                </span>
+
+                <strong>
+                  {{ getTypeLabel(selectedNotification.type) }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Priority
+                </span>
+
+                <strong>
+                  {{ getPriorityLabel(selectedNotification.priority) }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Organization
+                </span>
+
+                <strong>
+                  {{ selectedNotification.organizationName || '—' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Reference
+                </span>
+
+                <strong>
+                  {{ selectedNotification.referenceId || '—' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Created
+                </span>
+
+                <strong>
+                  {{ selectedNotification.createdAt || '—' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Read At
+                </span>
+
+                <strong>
+                  {{ selectedNotification.readAt || 'Not read yet' }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- Mark as read -->
+
+          @if (selectedNotification.status === 'UNREAD') {
+
+            <div class="read-action-box">
+
+              <div>
+
+                <strong>
+                  This notification is unread
+                </strong>
+
+                <p>
+                  Mark it as read once you have reviewed the information.
+                </p>
+
+              </div>
+
+              <button
+                type="button"
+                class="mark-read-button"
+                (click)="markAsRead(selectedNotification.id)"
+              >
+                Mark as read
+              </button>
+
+            </div>
+
+          }
+
+        }
+<!-- ==========================================
+     ACCESS REQUEST ACTIONS
+     =========================================== -->
+
+@if (
+  selectedNotification?.type === 'ACCESS_REQUEST' &&
+  selectedNotification?.referenceId
+) {
+
+  <div class="access-request-actions">
+
+    <div class="access-request-action-header">
+      <div>
+        <strong>Organization Access Request</strong>
+
+        <p>
+          Review this request and choose whether to approve or reject
+          the organization access request.
+        </p>
+      </div>
+    </div>
+
+    @if (actionError) {
+      <div class="access-request-error">
+        {{ actionError }}
+      </div>
+    }
+
+    @if (actionSuccess) {
+      <div class="access-request-success" role="status">
+        {{ actionSuccess }}
+      </div>
+    }
+
+    @if (accessRequestApproved) {
+      <div class="access-request-success" role="status">
+        This user has already been approved.
+      </div>
+    }
+
+    <div class="access-request-buttons">
+
+      @if (!accessRequestApproved) {
+      <button
+        type="button"
+        class="reject-request-button"
+        [disabled]="actionLoading"
+        (click)="rejectAccessRequest()"
+      >
+        @if (actionLoading) {
+          Processing...
+        } @else {
+          Reject Request
+        }
+      </button>
+
+      <button
+        type="button"
+        class="approve-request-button"
+        [disabled]="actionLoading"
+        (click)="approveAccessRequest()"
+      >
+        @if (actionLoading) {
+          Processing...
+        } @else {
+          Approve Request
+        }
+      </button>
+      }
+
+      <button
+  type="button"
+  class="resend-activation-button"
+  [disabled]="actionLoading"
+  (click)="resendAccessRequestActivation()"
+>
+  @if (actionLoading) {
+    <span>Processing...</span>
+  } @else {
+    <span>Resend Activation Link</span>
+  }
+</button>
+    </div>
+    </div>
+
+}
+      </div>
+
+
+      <!-- Modal Footer -->
+
+      @if (!loadingNotification) {
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="modal-close-button"
+            (click)="closeViewNotificationModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+}

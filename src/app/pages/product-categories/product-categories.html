@@ -1,0 +1,109 @@
+<section class="categories-page">
+  <header class="page-header">
+    <div>
+      <span class="eyebrow">PLATFORM CATALOG</span>
+      <h1>Product Categories</h1>
+      <p>Manage the shared categories used by manufacturers and distributors.</p>
+    </div>
+  </header>
+
+  @if (errorMessage) {
+    <div class="message error" role="alert">{{ errorMessage }}</div>
+  }
+  @if (successMessage) {
+    <div class="message success" role="status">{{ successMessage }}</div>
+  }
+
+  <form class="create-category-card" (ngSubmit)="createCategory()">
+    <div>
+      <h2>Add a category</h2>
+      <p>New categories become available when organizations create products.</p>
+    </div>
+    <div class="create-controls">
+      <label class="visually-hidden" for="newCategoryName">Category name</label>
+      <input
+        id="newCategoryName"
+        name="newCategoryName"
+        [(ngModel)]="newCategoryName"
+        maxlength="100"
+        placeholder="e.g. Building materials"
+        [disabled]="saving"
+        required
+      />
+      <button class="primary-button" type="submit" [disabled]="saving">
+        {{ saving ? 'Adding...' : 'Add Category' }}
+      </button>
+    </div>
+  </form>
+
+  <section class="category-directory" aria-labelledby="category-title">
+    <div class="directory-header">
+      <div>
+        <h2 id="category-title">Global categories</h2>
+        <p>{{ categories.length }} categories available across the platform</p>
+      </div>
+      <a routerLink="/products">View all products</a>
+    </div>
+
+    @if (loading) {
+      <p class="empty-state">Loading categories...</p>
+    } @else if (categories.length === 0) {
+      <p class="empty-state">No categories yet. Add the first global category above.</p>
+    } @else {
+      <div class="category-list">
+        @for (category of categories; track category) {
+          <article class="category-item">
+            @if (editingCategory === category) {
+              <form class="rename-form" (ngSubmit)="renameCategory(category)">
+                <label class="visually-hidden" [for]="'rename-' + category">
+                  Rename {{ category }}
+                </label>
+                <input
+                  [id]="'rename-' + category"
+                  name="editedCategoryName"
+                  [(ngModel)]="editedCategoryName"
+                  maxlength="100"
+                  [disabled]="busyCategory === category"
+                  required
+                />
+                <button
+                  class="small-button primary"
+                  type="submit"
+                  [disabled]="busyCategory === category"
+                >Save</button>
+                <button
+                  class="small-button"
+                  type="button"
+                  (click)="cancelRename()"
+                  [disabled]="busyCategory === category"
+                >Cancel</button>
+              </form>
+            } @else {
+              <div class="category-name">
+                <strong>{{ category }}</strong>
+                <span>Shared platform category</span>
+              </div>
+              <div class="category-actions">
+                <a
+                  class="small-button"
+                  routerLink="/products"
+                >View products</a>
+                <button class="small-button" type="button" (click)="beginRename(category)">
+                  Rename
+                </button>
+                <button
+                  class="small-button danger"
+                  type="button"
+                  (click)="deactivateCategory(category)"
+                  [disabled]="busyCategory === category"
+                >
+                  {{ busyCategory === category ? 'Saving...' : 'Deactivate' }}
+                </button>
+              </div>
+            }
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>

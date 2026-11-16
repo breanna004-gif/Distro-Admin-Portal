@@ -1,0 +1,236 @@
+<header class="navbar">
+
+  <!-- Page Heading -->
+  <div class="page-heading">
+
+    <div class="heading-icon">
+      <img src="/logiflow-logo.svg" alt="" />
+    </div>
+
+    <div>
+        <h1>LogiFlow</h1>
+</div>
+
+    </div>
+
+  <!-- Navbar Actions -->
+  <div class="navbar-actions">
+
+    <!-- Theme Toggle -->
+    <button
+      class="icon-button theme-button"
+      type="button"
+      [attr.aria-label]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+      [title]="isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'"
+      (click)="toggleTheme()"
+    >
+
+      @if (!isDarkMode) {
+
+        <!-- Moon -->
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+        </svg>
+
+      } @else {
+
+        <!-- Sun -->
+        <svg
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2"></path>
+          <path d="M12 20v2"></path>
+          <path d="m4.93 4.93 1.42 1.42"></path>
+          <path d="m17.65 17.65 1.42 1.42"></path>
+          <path d="M2 12h2"></path>
+          <path d="M20 12h2"></path>
+          <path d="m6.34 17.66-1.41 1.41"></path>
+          <path d="m19.07 4.93-1.42 1.42"></path>
+        </svg>
+
+      }
+
+    </button>
+
+
+    <!-- Notifications -->
+    <a
+      class="icon-button notification-button"
+      routerLink="/notifications"
+      aria-label="Notifications"
+      title="Notifications"
+    >
+
+      <svg
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+
+      <span class="notification-dot"></span>
+
+    </a>
+
+
+    <!-- Divider -->
+    <div class="navbar-divider"></div>
+
+
+    <!-- Profile -->
+    <div class="profile-wrapper">
+
+      <button
+        class="profile"
+        type="button"
+        [class.open]="profileMenuOpen"
+        aria-label="Open administrator menu"
+        (click)="toggleProfileMenu(); $event.stopPropagation()"
+      >
+
+        <div class="profile-avatar">
+          M
+        </div>
+
+        <div class="profile-info">
+          <strong>Administrator</strong>
+          <span>System Admin</span>
+        </div>
+
+        <svg
+          class="profile-chevron"
+          [class.rotated]="profileMenuOpen"
+          viewBox="0 0 24 24"
+          aria-hidden="true"
+        >
+          <path d="m6 9 6 6 6-6"></path>
+        </svg>
+
+      </button>
+
+
+      <!-- Profile Dropdown -->
+      @if (profileMenuOpen) {
+
+        <div
+          class="profile-menu"
+          (click)="$event.stopPropagation()"
+        >
+
+          <div class="profile-menu-header">
+
+            <div class="menu-avatar">
+              M
+            </div>
+
+            <div>
+              <strong>Administrator</strong>
+              <span>michellemakimei@gmail.com</span>
+            </div>
+
+          </div>
+
+
+          <div class="menu-divider"></div>
+
+
+          <!-- Settings -->
+          <a
+            class="menu-item"
+            routerLink="/settings"
+            (click)="closeProfileMenu()"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-1.7 1.7-.06-.06a1.7 1.7 0 0 0-1.88-.34 1.7 1.7 0 0 0-1.03 1.56V20h-2.4v-.2a1.7 1.7 0 0 0-1.03-1.56 1.7 1.7 0 0 0-1.88.34l-.06.06-1.7-1.7.06-.06A1.7 1.7 0 0 0 8.46 15a1.7 1.7 0 0 0-1.56-1.03H6.7v-2.4h.2a1.7 1.7 0 0 0 1.56-1.03 1.7 1.7 0 0 0-.34-1.88l-.06-.06 1.7-1.7.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 12.73 5.7v-.2h2.4v.2a1.7 1.7 0 0 0 1.03 1.56 1.7 1.7 0 0 0 1.88-.34l-.06-.06 1.7-1.7.06.06a1.7 1.7 0 0 0 1.88.34A1.7 1.7 0 0 0 12.73 5.7Z"></path>
+            </svg>
+
+            <span>Settings</span>
+
+          </a>
+
+
+          <!-- Theme -->
+          <button
+            class="menu-item"
+            type="button"
+            (click)="toggleTheme()"
+          >
+
+            @if (!isDarkMode) {
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+              </svg>
+
+              <span>Dark mode</span>
+
+            } @else {
+
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle cx="12" cy="12" r="4"></circle>
+                <path d="M12 2v2"></path>
+                <path d="M12 20v2"></path>
+                <path d="m4.93 4.93 1.42 1.42"></path>
+                <path d="m17.65 17.65 1.42 1.42"></path>
+                <path d="M2 12h2"></path>
+                <path d="M20 12h2"></path>
+                <path d="m6.34 17.66-1.41 1.41"></path>
+                <path d="m19.07 4.93-1.42 1.42"></path>
+              </svg>
+
+              <span>Light mode</span>
+
+            }
+
+          </button>
+
+
+          <div class="menu-divider"></div>
+
+
+          <!-- Logout -->
+          <button
+            class="menu-item logout-item"
+            type="button"
+            (click)="logout()"
+          >
+
+            <svg
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <path d="M16 17l5-5-5-5"></path>
+              <path d="M21 12H9"></path>
+            </svg>
+
+            <span>Logout</span>
+
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+</header>

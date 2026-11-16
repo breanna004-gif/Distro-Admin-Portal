@@ -1,0 +1,886 @@
+<div class="audit-page">
+
+  <!-- ==========================================
+       PAGE HEADER
+       ========================================== -->
+
+  <div class="page-header">
+
+    <div class="header-content">
+
+      <div>
+        <h1>Audit Logs</h1>
+
+        <p>
+          Track administrative activity and changes across the platform.
+        </p>
+      </div>
+
+      <div class="header-summary">
+        <span class="summary-dot"></span>
+
+        <span>
+          Activity monitoring
+        </span>
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==========================================
+       ERROR MESSAGE
+       ========================================== -->
+
+  @if (errorMessage) {
+
+    <div class="error-banner">
+
+      <div class="error-icon">
+        !
+      </div>
+
+      <div class="error-content">
+
+        <strong>
+          Unable to load audit logs
+        </strong>
+
+        <p>
+          {{ errorMessage }}
+        </p>
+
+      </div>
+
+      <button
+        type="button"
+        (click)="loadAuditLogs()"
+      >
+        Try again
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- ==========================================
+       KPI CARDS
+       ========================================== -->
+
+  <section class="stats-grid">
+
+    <!-- Total Logs -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon total-icon">
+        A
+      </div>
+
+      <div class="stat-content">
+
+        <div class="stat-label">
+          Total Activity
+        </div>
+
+        <div class="stat-value">
+          {{ getTotalLogs() }}
+        </div>
+
+        <div class="stat-description">
+          Recorded audit events
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Successful -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon success-icon">
+        ✓
+      </div>
+
+      <div class="stat-content">
+
+        <div class="stat-label">
+          Successful
+        </div>
+
+        <div class="stat-value">
+          {{ getSuccessfulLogs() }}
+        </div>
+
+        <div class="stat-description">
+          Completed successfully
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Failed -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon failed-icon">
+        !
+      </div>
+
+      <div class="stat-content">
+
+        <div class="stat-label">
+          Failed
+        </div>
+
+        <div class="stat-value">
+          {{ getFailedLogs() }}
+        </div>
+
+        <div class="stat-description">
+          Actions requiring attention
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Login Activity -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon login-icon">
+        L
+      </div>
+
+      <div class="stat-content">
+
+        <div class="stat-label">
+          Authentication Events
+        </div>
+
+        <div class="stat-value">
+          {{ getLoginActivity() }}
+        </div>
+
+        <div class="stat-description">
+          Login and logout activity
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================================
+       FILTERS
+       ========================================== -->
+
+  <section class="filter-card">
+
+    <div class="search-section">
+
+      <div class="search-box">
+
+        <span class="search-icon">
+          ⌕
+        </span>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="searchAuditLogs()"
+          placeholder="Search by user, action, resource, ID or description..."
+        />
+
+        @if (searchTerm) {
+
+          <button
+            type="button"
+            class="clear-search"
+            (click)="searchTerm = ''; searchAuditLogs()"
+          >
+            ×
+          </button>
+
+        }
+
+      </div>
+
+      <button
+        type="button"
+        class="search-button"
+        (click)="searchAuditLogs()"
+      >
+        Search
+      </button>
+
+    </div>
+
+
+  </section>
+
+
+  <!-- ==========================================
+       AUDIT LOG TABLE
+       ========================================== -->
+
+  <section class="table-card">
+
+    <div class="table-header">
+
+      <div>
+
+        <h2>
+          Activity History
+        </h2>
+
+        <p>
+          {{ totalElements }} audit events recorded
+        </p>
+
+      </div>
+
+      <div class="table-status">
+
+        <span class="status-indicator"></span>
+
+        Monitoring active
+
+      </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Activity
+            </th>
+
+            <th>
+              User
+            </th>
+
+            <th>
+              Resource
+            </th>
+
+            <th>
+              Organization
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              Date &amp; Time
+            </th>
+
+            <th>
+              Action
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          @if (loading) {
+
+            <tr>
+
+              <td
+                colspan="7"
+                class="loading-row"
+              >
+
+                <div class="table-loading">
+
+                  <div class="loading-spinner"></div>
+
+                  <span>
+                    Loading audit logs...
+                  </span>
+
+                </div>
+
+              </td>
+
+            </tr>
+
+          }
+
+
+          @else if (auditLogs.length === 0) {
+
+            <tr>
+
+              <td
+                colspan="7"
+                class="empty-row"
+              >
+
+                <div class="empty-state">
+
+                  <div class="empty-icon">
+                    —
+                  </div>
+
+                  <strong>
+                    No audit logs found
+                  </strong>
+
+                  <p>
+                    No audit events match your search.
+                  </p>
+
+                </div>
+
+              </td>
+
+            </tr>
+
+          }
+
+
+          @else {
+
+            @for (
+              log of auditLogs;
+              track log.id
+            ) {
+
+              <tr>
+
+                <!-- Activity -->
+
+                <td>
+
+                  <div class="activity-cell">
+
+                    <div
+                      class="activity-icon"
+                      [ngClass]="getActionClass(log.action)"
+                    >
+                      {{ log.action.charAt(0) }}
+                    </div>
+
+                    <div class="activity-details">
+
+                      <strong>
+                        {{ getActionLabel(log.action) }}
+                        {{ getResourceLabel(log.resourceType) }}
+                      </strong>
+
+                      <span>
+                        {{ log.description }}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </td>
+
+
+                <!-- User -->
+
+                <td>
+
+                  <div class="user-cell">
+
+                    <div class="user-avatar">
+                      {{ (log.userName ?? 'S').charAt(0) }}
+                    </div>
+
+                    <div>
+
+                      <strong>
+                        {{ log.userName || 'System' }}
+                      </strong>
+
+                      <span>
+                        {{ log.userEmail || 'System process' }}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </td>
+
+
+                <!-- Resource -->
+
+                <td>
+
+                  <div class="resource-cell">
+
+                    <span
+                      class="resource-badge"
+                      [ngClass]="getResourceClass(log.resourceType)"
+                    >
+                      {{ getResourceLabel(log.resourceType) }}
+                    </span>
+
+                    @if (log.resourceId) {
+
+                      <span class="resource-id">
+                        {{ log.resourceId }}
+                      </span>
+
+                    }
+
+                  </div>
+
+                </td>
+
+
+                <!-- Organization -->
+
+                <td>
+
+                  @if (log.organizationName) {
+
+                    <span class="organization-name">
+                      {{ log.organizationName }}
+                    </span>
+
+                  } @else {
+
+                    <span class="not-available">
+                      —
+                    </span>
+
+                  }
+
+                </td>
+
+
+                <!-- Status -->
+
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [ngClass]="getStatusClass(log.status)"
+                  >
+
+                    <span class="status-dot"></span>
+
+                    {{ log.status }}
+
+                  </span>
+
+                </td>
+
+
+                <!-- Date -->
+
+                <td>
+
+                  <span class="date-cell">
+                    {{ log.createdAt || '—' }}
+                  </span>
+
+                </td>
+
+
+                <!-- Action -->
+
+                <td>
+
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="viewAuditLog(log.id)"
+                  >
+                    View
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- ==========================================
+         PAGINATION
+         ========================================== -->
+
+    <div class="pagination">
+
+      <div class="pagination-info">
+
+        Showing
+        <strong>
+          {{ auditLogs.length }}
+        </strong>
+        of
+        <strong>
+          {{ totalElements }}
+        </strong>
+        events
+
+      </div>
+
+
+      <div class="pagination-controls">
+
+        <button
+          type="button"
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+        >
+          Previous
+        </button>
+
+        <span class="page-number">
+          Page {{ currentPage + 1 }}
+        </span>
+
+        <button
+          type="button"
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+        >
+          Next
+        </button>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================================
+       VIEW AUDIT LOG MODAL
+       ========================================== -->
+
+  @if (showViewAuditLogModal) {
+
+    <div
+      class="modal-backdrop"
+      (click)="closeViewAuditLogModal()"
+    >
+
+      <div
+        class="modal"
+        (click)="$event.stopPropagation()"
+      >
+
+        <div class="modal-header">
+
+          <div>
+
+            <span class="modal-eyebrow">
+              Audit Event
+            </span>
+
+            <h2>
+              Activity Details
+            </h2>
+
+          </div>
+
+          <button
+            type="button"
+            class="close-button"
+            (click)="closeViewAuditLogModal()"
+          >
+            ×
+          </button>
+
+        </div>
+
+
+        @if (loadingAuditLog) {
+
+          <div class="modal-loading">
+
+            <div class="loading-spinner"></div>
+
+            <span>
+              Loading activity details...
+            </span>
+
+          </div>
+
+        }
+
+
+        @else if (viewAuditLogError) {
+
+          <div class="modal-error">
+
+            <div class="modal-error-icon">
+              !
+            </div>
+
+            <p>
+              {{ viewAuditLogError }}
+            </p>
+
+          </div>
+
+        }
+
+
+        @else if (selectedAuditLog) {
+
+          <div class="modal-body">
+
+            <!-- Event summary -->
+
+            <div class="event-summary">
+
+              <div
+                class="event-icon"
+                [ngClass]="getActionClass(selectedAuditLog.action)"
+              >
+                {{ selectedAuditLog.action.charAt(0) }}
+              </div>
+
+              <div>
+
+                <strong>
+                  {{ getActionLabel(selectedAuditLog.action) }}
+                  {{ getResourceLabel(selectedAuditLog.resourceType) }}
+                </strong>
+
+                <span>
+                  {{ selectedAuditLog.createdAt || '—' }}
+                </span>
+
+              </div>
+
+              <span
+                class="status-badge"
+                [ngClass]="getStatusClass(selectedAuditLog.status)"
+              >
+
+                <span class="status-dot"></span>
+
+                {{ selectedAuditLog.status }}
+
+              </span>
+
+            </div>
+
+
+            <!-- Description -->
+
+            <div class="detail-section">
+
+              <h3>
+                Description
+              </h3>
+
+              <p class="description-text">
+                {{ selectedAuditLog.description || 'No description available.' }}
+              </p>
+
+            </div>
+
+
+            <!-- Details grid -->
+
+            <div class="details-grid">
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Audit ID
+                </span>
+
+                <strong>
+                  {{ selectedAuditLog.id }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Action
+                </span>
+
+                <strong>
+                  {{ getActionLabel(selectedAuditLog.action) }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Resource
+                </span>
+
+                <strong>
+                  {{ getResourceLabel(selectedAuditLog.resourceType) }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Resource ID
+                </span>
+
+                <strong>
+                  {{ selectedAuditLog.resourceId || '—' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  User
+                </span>
+
+                <strong>
+                  {{ selectedAuditLog.userName || 'System' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Email
+                </span>
+
+                <strong>
+                  {{ selectedAuditLog.userEmail || '—' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Organization
+                </span>
+
+                <strong>
+                  {{ selectedAuditLog.organizationName || '—' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  IP Address
+                </span>
+
+                <strong>
+                  {{ selectedAuditLog.ipAddress || '—' }}
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <!-- Technical information -->
+
+            <div class="detail-section technical-section">
+
+              <h3>
+                Technical Information
+              </h3>
+
+              <div class="technical-grid">
+
+                <div>
+
+                  <span>
+                    User Agent
+                  </span>
+
+                  <strong>
+                    {{ selectedAuditLog.userAgent || '—' }}
+                  </strong>
+
+                </div>
+
+                <div>
+
+                  <span>
+                    Recorded At
+                  </span>
+
+                  <strong>
+                    {{ selectedAuditLog.createdAt || '—' }}
+                  </strong>
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        }
+
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="close-modal-button"
+            (click)="closeViewAuditLogModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

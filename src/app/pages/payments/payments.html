@@ -1,0 +1,967 @@
+<div class="payments-page">
+
+  <!-- ==========================================
+       PAGE HEADER
+  =========================================== -->
+
+  <div class="page-header">
+
+    <div>
+      <h1>Payments</h1>
+
+      <p>
+        Monitor payment transactions and payment status across the platform.
+      </p>
+    </div>
+
+  </div>
+
+  <app-report-download
+    title="Payments Report"
+    filename="payments-report"
+    [columns]="reportColumns"
+    [data]="reportData"
+  ></app-report-download>
+
+
+  <!-- ==========================================
+       ERROR MESSAGE
+  =========================================== -->
+
+  @if (errorMessage) {
+
+    <div class="alert alert-error">
+      <span class="alert-icon">!</span>
+
+      <span>
+        {{ errorMessage }}
+      </span>
+
+      <button
+        type="button"
+        class="alert-action"
+        (click)="loadPayments()"
+      >
+        Retry
+      </button>
+    </div>
+
+  }
+
+
+  <!-- ==========================================
+       KPI CARDS
+  =========================================== -->
+
+  <div class="stats-grid">
+
+    <!-- Total Payment Value -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon total-icon">
+        $
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Total Payment Value
+        </span>
+
+        <strong class="stat-value">
+          KES {{ getTotalPaymentAmount() | number:'1.0-0' }}
+        </strong>
+
+        <span class="stat-description">
+          Transactions on this page
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- Paid -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon success-icon">
+        ✓
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Successful Payments
+        </span>
+
+        <strong class="stat-value">
+          {{ getSuccessfulPayments() }}
+        </strong>
+
+        <span class="stat-description">
+          KES {{ getPaidPaymentAmount() | number:'1.0-0' }} collected on this page
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- Pending -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon pending-icon">
+        ◷
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Pending Payments
+        </span>
+
+        <strong class="stat-value">
+          {{ getPendingPayments() }}
+        </strong>
+
+        <span class="stat-description">
+          KES {{ getPendingPaymentAmount() | number:'1.0-0' }} pending on this page
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <!-- Failed -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon danger-icon">
+        !
+      </div>
+
+      <div class="stat-content">
+
+        <span class="stat-label">
+          Failed Payments
+        </span>
+
+        <strong class="stat-value">
+          {{ getFailedPayments() }}
+        </strong>
+
+        <span class="stat-description">
+          On this page
+        </span>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==========================================
+       PAYMENTS CARD
+  =========================================== -->
+
+  <div class="payments-card">
+
+
+    <!-- ========================================
+         CARD HEADER
+    ========================================= -->
+
+    <div class="card-header">
+
+      <div>
+
+        <h2>Payment Transactions</h2>
+
+        <p>
+          View and monitor payment activity.
+        </p>
+
+      </div>
+
+      <div class="transaction-count">
+
+        {{ totalElements }}
+        {{ totalElements === 1 ? 'transaction' : 'transactions' }}
+
+      </div>
+
+    </div>
+
+
+    <!-- ========================================
+         FILTER BAR
+    ========================================= -->
+
+    <div class="filter-bar">
+
+
+      <!-- Search -->
+
+      <div class="search-wrapper">
+
+        <span class="search-icon">
+          ⌕
+        </span>
+
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (keyup.enter)="searchPayments()"
+          placeholder="Search payment ID, order, customer or reference..."
+          class="search-input"
+        />
+
+        @if (searchTerm) {
+
+          <button
+            type="button"
+            class="clear-search"
+            (click)="searchTerm = ''; searchPayments()"
+            aria-label="Clear search"
+          >
+            ×
+          </button>
+
+        }
+
+      </div>
+
+
+      <!-- Search Button -->
+
+      <button
+        type="button"
+        class="search-button"
+        (click)="searchPayments()"
+      >
+        Search
+      </button>
+
+    </div>
+
+
+    <!-- ========================================
+         TABLE
+    ========================================= -->
+
+    <div class="table-wrapper">
+
+      @if (loading) {
+
+        <div class="loading-state">
+
+          <div class="loading-spinner"></div>
+
+          <p>
+            Loading payments...
+          </p>
+
+        </div>
+
+      }
+
+      @else if (payments.length === 0) {
+
+        <div class="empty-state">
+
+          <div class="empty-icon">
+            $
+          </div>
+
+          <h3>
+            No payments found
+          </h3>
+
+          <p>
+            No payments match your search.
+          </p>
+
+          @if (searchTerm) {
+
+            <button
+              type="button"
+              class="reset-button"
+              (click)="
+                searchTerm = '';
+                searchPayments()
+              "
+            >
+              Clear search
+            </button>
+
+          }
+
+        </div>
+
+      }
+
+      @else {
+
+        <table class="payments-table">
+
+          <thead>
+
+            <tr>
+
+              <th>
+                Payment
+              </th>
+
+              <th>
+                Order
+              </th>
+
+              <th>
+                Customer
+              </th>
+
+              <th>
+                Amount
+              </th>
+
+              <th>
+                Method
+              </th>
+
+              <th>
+                Status
+              </th>
+
+              <th>
+                Date
+              </th>
+
+              <th>
+                Action
+              </th>
+
+            </tr>
+
+          </thead>
+
+
+          <tbody>
+
+            @for (
+              payment of payments;
+              track payment.id
+            ) {
+
+              <tr>
+
+                <!-- Payment -->
+
+                <td>
+
+                  <div class="payment-cell">
+
+                    <div class="payment-avatar">
+                      $
+                    </div>
+
+                    <div class="payment-info">
+
+                      <strong>
+                        {{ payment.id }}
+                      </strong>
+
+                      @if (payment.transactionReference) {
+
+                        <span>
+                          {{ payment.transactionReference }}
+                        </span>
+
+                      }
+
+                      @else {
+
+                        <span class="muted-text">
+                          No reference
+                        </span>
+
+                      }
+
+                    </div>
+
+                  </div>
+
+                </td>
+
+
+                <!-- Order -->
+
+                <td>
+
+                  <span class="order-id">
+                    {{ payment.orderId }}
+                  </span>
+
+                </td>
+
+
+                <!-- Customer -->
+
+                <td>
+
+                  <div class="customer-cell">
+
+                    <strong>
+                      {{ payment.customerName }}
+                    </strong>
+
+                    @if (payment.organizationName) {
+
+                      <span>
+                        {{ payment.organizationName }}
+                      </span>
+
+                    }
+
+                  </div>
+
+                </td>
+
+
+                <!-- Amount -->
+
+                <td>
+
+                  <strong class="amount">
+
+                    {{ payment.currency }}
+                    {{ payment.amount | number:'1.0-0' }}
+
+                  </strong>
+
+                </td>
+
+
+                <!-- Method -->
+
+                <td>
+
+                  <span
+                    class="method-badge"
+                    [class.method-mpesa]="payment.method === 'MPESA'"
+                    [class.method-card]="payment.method === 'CARD'"
+                    [class.method-bank]="payment.method === 'BANK_TRANSFER'"
+                    [class.method-cash]="payment.method === 'CASH'"
+                    [class.method-other]="payment.method === 'OTHER'"
+                  >
+
+                    @if (payment.method === 'MPESA') {
+                      M-Pesa
+                    }
+
+                    @else if (payment.method === 'BANK_TRANSFER') {
+                      Bank Transfer
+                    }
+
+                    @else if (payment.method === 'CARD') {
+                      Card
+                    }
+
+                    @else if (payment.method === 'CASH') {
+                      Cash
+                    }
+
+                    @else {
+                      Other
+                    }
+
+                  </span>
+
+                </td>
+
+
+                <!-- Status -->
+
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [class.status-paid]="payment.status === 'PAID'"
+                    [class.status-pending]="payment.status === 'PENDING'"
+                    [class.status-failed]="payment.status === 'FAILED'"
+                    [class.status-refunded]="payment.status === 'REFUNDED'"
+                    [class.status-cancelled]="payment.status === 'CANCELLED'"
+                  >
+
+                    <span class="status-dot"></span>
+
+                    @if (payment.status === 'PAID') {
+                      Paid
+                    }
+
+                    @else if (payment.status === 'PENDING') {
+                      Pending
+                    }
+
+                    @else if (payment.status === 'FAILED') {
+                      Failed
+                    }
+
+                    @else if (payment.status === 'REFUNDED') {
+                      Refunded
+                    }
+
+                    @else {
+                      Cancelled
+                    }
+
+                  </span>
+
+                </td>
+
+
+                <!-- Date -->
+
+                <td>
+
+                  <span class="payment-date">
+
+                    {{
+                      payment.paymentDate ||
+                      payment.createdAt ||
+                      '—'
+                    }}
+
+                  </span>
+
+                </td>
+
+
+                <!-- Action -->
+
+                <td>
+
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="viewPayment(payment.id)"
+                  >
+                    View
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          </tbody>
+
+        </table>
+
+      }
+
+    </div>
+
+
+    <!-- ========================================
+         PAGINATION
+    ========================================= -->
+
+    @if (payments.length > 0) {
+
+      <div class="pagination">
+
+        <div class="pagination-info">
+
+          Showing
+          <strong>{{ payments.length }}</strong>
+          of
+          <strong>{{ totalElements }}</strong>
+          payments
+
+        </div>
+
+
+        <div class="pagination-controls">
+
+          <button
+            type="button"
+            class="pagination-button"
+            [disabled]="currentPage === 0"
+            (click)="previousPage()"
+          >
+            Previous
+          </button>
+
+          <span class="page-number">
+            Page {{ currentPage + 1 }}
+          </span>
+
+          <button
+            type="button"
+            class="pagination-button"
+            [disabled]="currentPage >= totalPages - 1"
+            (click)="nextPage()"
+          >
+            Next
+          </button>
+
+        </div>
+
+      </div>
+
+    }
+
+  </div>
+
+</div>
+
+
+<!-- ==========================================
+     VIEW PAYMENT MODAL
+=========================================== -->
+
+@if (showViewPaymentModal) {
+
+  <div
+    class="modal-backdrop"
+    (click)="closeViewPaymentModal()"
+  >
+
+    <div
+      class="payment-modal"
+      (click)="$event.stopPropagation()"
+    >
+
+
+      <!-- Modal Header -->
+
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            Payment Details
+          </span>
+
+          <h2>
+            {{ selectedPayment?.id || 'Payment' }}
+          </h2>
+
+        </div>
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeViewPaymentModal()"
+          [disabled]="loadingPayment"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- Modal Body -->
+
+      <div class="modal-body">
+
+        @if (loadingPayment) {
+
+          <div class="modal-loading">
+
+            <div class="loading-spinner"></div>
+
+            <p>
+              Loading payment details...
+            </p>
+
+          </div>
+
+        }
+
+        @else if (viewPaymentError) {
+
+          <div class="modal-error">
+
+            <div class="modal-error-icon">
+              !
+            </div>
+
+            <h3>
+              Unable to load payment
+            </h3>
+
+            <p>
+              {{ viewPaymentError }}
+            </p>
+
+            <button
+              type="button"
+              class="reset-button"
+              (click)="closeViewPaymentModal()"
+            >
+              Close
+            </button>
+
+          </div>
+
+        }
+
+        @else if (selectedPayment) {
+
+          <!-- Payment Summary -->
+
+          <div class="payment-summary">
+
+            <div class="summary-amount">
+
+              <span>
+                Payment Amount
+              </span>
+
+              <strong>
+                {{ selectedPayment.currency }}
+                {{ selectedPayment.amount | number:'1.0-0' }}
+              </strong>
+
+            </div>
+
+
+            <span
+              class="status-badge large-status"
+              [class.status-paid]="selectedPayment.status === 'PAID'"
+              [class.status-pending]="selectedPayment.status === 'PENDING'"
+              [class.status-failed]="selectedPayment.status === 'FAILED'"
+              [class.status-refunded]="selectedPayment.status === 'REFUNDED'"
+              [class.status-cancelled]="selectedPayment.status === 'CANCELLED'"
+            >
+
+              <span class="status-dot"></span>
+
+              @if (selectedPayment.status === 'PAID') {
+                Paid
+              }
+
+              @else if (selectedPayment.status === 'PENDING') {
+                Pending
+              }
+
+              @else if (selectedPayment.status === 'FAILED') {
+                Failed
+              }
+
+              @else if (selectedPayment.status === 'REFUNDED') {
+                Refunded
+              }
+
+              @else {
+                Cancelled
+              }
+
+            </span>
+
+          </div>
+
+
+          <!-- Details -->
+
+          <div class="details-section">
+
+            <h3>
+              Transaction Information
+            </h3>
+
+            <div class="details-grid">
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Payment ID
+                </span>
+
+                <strong>
+                  {{ selectedPayment.id }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Order ID
+                </span>
+
+                <strong>
+                  {{ selectedPayment.orderId }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Customer
+                </span>
+
+                <strong>
+                  {{ selectedPayment.customerName }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Organization
+                </span>
+
+                <strong>
+                  {{ selectedPayment.organizationName || '—' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Payment Method
+                </span>
+
+                <strong>
+
+                  @if (selectedPayment.method === 'MPESA') {
+                    M-Pesa
+                  }
+
+                  @else if (selectedPayment.method === 'BANK_TRANSFER') {
+                    Bank Transfer
+                  }
+
+                  @else if (selectedPayment.method === 'CARD') {
+                    Card
+                  }
+
+                  @else if (selectedPayment.method === 'CASH') {
+                    Cash
+                  }
+
+                  @else {
+                    Other
+                  }
+
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Transaction Reference
+                </span>
+
+                <strong>
+                  {{ selectedPayment.transactionReference || '—' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Payment Date
+                </span>
+
+                <strong>
+                  {{ selectedPayment.paymentDate || '—' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Created
+                </span>
+
+                <strong>
+                  {{ selectedPayment.createdAt || '—' }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- Failure Reason -->
+
+          @if (
+            selectedPayment.status === 'FAILED' &&
+            selectedPayment.failureReason
+          ) {
+
+            <div class="failure-box">
+
+              <div class="failure-icon">
+                !
+              </div>
+
+              <div>
+
+                <strong>
+                  Payment Failure Reason
+                </strong>
+
+                <p>
+                  {{ selectedPayment.failureReason }}
+                </p>
+
+              </div>
+
+            </div>
+
+          }
+
+        }
+
+      </div>
+
+
+      <!-- Modal Footer -->
+
+      @if (!loadingPayment) {
+
+        <div class="modal-footer">
+
+          <button
+            type="button"
+            class="modal-close-button"
+            (click)="closeViewPaymentModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+}

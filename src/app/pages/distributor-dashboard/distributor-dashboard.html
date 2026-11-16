@@ -1,0 +1,735 @@
+<div class="dashboard-page">
+
+  <!-- =========================================================
+       HEADER
+       ========================================================= -->
+
+  <header class="dashboard-header">
+
+    <div class="header-left">
+
+      <div class="portal-label">
+        DISTRIBUTOR PORTAL
+      </div>
+
+      <h1>
+        {{ organizationName }}
+      </h1>
+
+      <p>
+        Here's what's happening with your distribution operations today.
+      </p>
+
+    </div>
+
+    <div class="header-right">
+
+      <div class="current-date">
+        {{ currentDate }}
+      </div>
+
+      <div class="current-time">
+        {{ currentTime }}
+      </div>
+
+    </div>
+
+  </header>
+
+  <nav class="shortcut-grid" aria-label="Distributor management shortcuts">
+    @if (canManageUsers) {
+      <a class="dashboard-shortcut" routerLink="/users">
+        <strong>Manage users</strong>
+        <span>{{ totalUsers }} organization users</span>
+      </a>
+      <a class="dashboard-shortcut" routerLink="/invite-user">
+        <strong>Invite team member</strong>
+        <span>Add staff to your organization</span>
+      </a>
+    }
+    <a class="dashboard-shortcut" routerLink="/products">
+      <strong>Browse products</strong>
+      <span>{{ totalProducts }} products · {{ activeProducts }} active</span>
+    </a>
+    <a class="dashboard-shortcut" routerLink="/inventory">
+      <strong>Review inventory</strong>
+      <span>{{ lowStockProducts }} low-stock products</span>
+    </a>
+    <a class="dashboard-shortcut" routerLink="/orders">
+      <strong>Manage orders</strong>
+      <span>{{ pendingOrders }} pending orders</span>
+    </a>
+    <a class="dashboard-shortcut" routerLink="/trips">
+      <strong>Manage deliveries</strong>
+      <span>{{ activeTrips }} active deliveries</span>
+    </a>
+    <a class="dashboard-shortcut" routerLink="/payments">
+      <strong>Review payments</strong>
+      <span>{{ pendingPayments }} pending payments</span>
+    </a>
+  </nav>
+
+
+  <!-- =========================================================
+       ERROR
+       ========================================================= -->
+
+  <div
+    class="error-message"
+    *ngIf="errorMessage"
+  >
+    {{ errorMessage }}
+  </div>
+
+
+  <!-- =========================================================
+       LOADING
+       ========================================================= -->
+
+  <div
+    class="loading-state"
+    *ngIf="loading"
+  >
+    Loading distributor dashboard data...
+  </div>
+
+
+  <!-- =========================================================
+       KPI CARDS
+       ========================================================= -->
+
+  <section
+    class="stats-grid"
+    *ngIf="!loading"
+  >
+
+    <!-- Pending Orders -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon orders-icon">
+        O
+      </div>
+
+      <div class="stat-content">
+
+        <div class="stat-label">
+          PENDING ORDERS
+        </div>
+
+        <div class="stat-value">
+          {{ pendingOrders }}
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Total Orders -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon total-orders-icon">
+        T
+      </div>
+
+      <div class="stat-content">
+
+        <div class="stat-label">
+          TOTAL ORDERS
+        </div>
+
+        <div class="stat-value">
+          {{ totalOrders }}
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Active Deliveries -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon delivery-icon">
+        D
+      </div>
+
+      <div class="stat-content">
+
+        <div class="stat-label">
+          ACTIVE DELIVERIES
+        </div>
+
+        <div class="stat-value">
+          {{ activeTrips }}
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Pending Payments -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon payment-icon">
+        $
+      </div>
+
+      <div class="stat-content">
+
+        <div class="stat-label">
+          PENDING PAYMENTS
+        </div>
+
+        <div class="stat-value">
+          {{ pendingPayments }}
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Stock Units -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon stock-icon">
+        S
+      </div>
+
+      <div class="stat-content">
+
+        <div class="stat-label">
+          STOCK UNITS
+        </div>
+
+        <div class="stat-value">
+          {{ totalStockUnits }}
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- Low Stock -->
+
+    <div class="stat-card">
+
+      <div class="stat-icon low-stock-icon">
+        !
+      </div>
+
+      <div class="stat-content">
+
+        <div class="stat-label">
+          LOW STOCK
+        </div>
+
+        <div class="stat-value">
+          {{ lowStockProducts }}
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- =========================================================
+       MAIN DISTRIBUTION OPERATIONS
+       ========================================================= -->
+
+  <section
+    class="content-grid"
+    *ngIf="!loading"
+  >
+
+
+    <!-- =======================================================
+         ORDER OPERATIONS
+         ======================================================= -->
+
+    <div class="dashboard-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Order Operations
+          </h2>
+
+          <p>
+            Current order activity across your organization
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="operation-summary">
+
+        <div class="summary-row">
+
+          <div class="summary-label">
+
+            <span class="dot orders-dot"></span>
+
+            Total Orders
+
+          </div>
+
+          <strong>
+            {{ totalOrders }}
+          </strong>
+
+        </div>
+
+
+        <div class="summary-row">
+
+          <div class="summary-label">
+
+            <span class="dot pending-dot"></span>
+
+            Pending Orders
+
+          </div>
+
+          <strong>
+            {{ pendingOrders }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="progress-section">
+
+        <div class="progress-header">
+
+          <span>
+            Pending order workload
+          </span>
+
+          <span>
+            {{ totalOrders > 0
+              ? ((pendingOrders / totalOrders) * 100 | number:'1.0-0')
+              : 0
+            }}%
+          </span>
+
+        </div>
+
+        <div class="progress-track">
+
+          <div
+            class="progress-fill orders-progress"
+            [style.width.%]="
+              totalOrders > 0
+                ? (pendingOrders / totalOrders) * 100
+                : 0
+            "
+          ></div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         DELIVERY OPERATIONS
+         ======================================================= -->
+
+    <div class="dashboard-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Delivery Operations
+          </h2>
+
+          <p>
+            Monitor distribution trips and active deliveries
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="operation-summary">
+
+        <div class="summary-row">
+
+          <div class="summary-label">
+
+            <span class="dot delivery-dot"></span>
+
+            Active Deliveries
+
+          </div>
+
+          <strong>
+            {{ activeTrips }}
+          </strong>
+
+        </div>
+
+
+        <div class="summary-row">
+
+          <div class="summary-label">
+
+            <span class="dot trips-dot"></span>
+
+            Total Trips
+
+          </div>
+
+          <strong>
+            {{ totalTrips }}
+          </strong>
+
+        </div>
+
+      </div>
+
+
+      <div class="progress-section">
+
+        <div class="progress-header">
+
+          <span>
+            Active trip workload
+          </span>
+
+          <span>
+            {{ totalTrips > 0
+              ? ((activeTrips / totalTrips) * 100 | number:'1.0-0')
+              : 0
+            }}%
+          </span>
+
+        </div>
+
+        <div class="progress-track">
+
+          <div
+            class="progress-fill delivery-progress"
+            [style.width.%]="
+              totalTrips > 0
+                ? (activeTrips / totalTrips) * 100
+                : 0
+            "
+          ></div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         INVENTORY WATCH
+         ======================================================= -->
+
+    <div class="dashboard-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Inventory Watch
+          </h2>
+
+          <p>
+            Stock levels that may require attention
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="inventory-list">
+
+        <div class="inventory-row">
+
+          <div class="inventory-label">
+
+            <span class="status-dot low"></span>
+
+            Low Stock
+
+          </div>
+
+          <strong>
+            {{ lowStockProducts }}
+          </strong>
+
+        </div>
+
+
+        <div class="inventory-row">
+
+          <div class="inventory-label">
+
+            <span class="status-dot pending"></span>
+
+            Pending Approvals
+
+          </div>
+
+          <strong>
+            {{ pendingStockApprovals }}
+          </strong>
+
+        </div>
+
+
+        <div class="inventory-row">
+
+          <div class="inventory-label">
+
+            <span class="status-dot stock"></span>
+
+            Stock Units
+
+          </div>
+
+          <strong>
+            {{ totalStockUnits }}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         PAYMENT OPERATIONS
+         ======================================================= -->
+
+    <div class="dashboard-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Payment Operations
+          </h2>
+
+          <p>
+            Payment activity for your organization
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="payment-grid">
+
+        <div class="payment-box">
+
+          <span>
+            Total Payments
+          </span>
+
+          <strong>
+            {{ totalPayments }}
+          </strong>
+
+        </div>
+
+
+        <div class="payment-box pending-payment">
+
+          <span>
+            Pending Payments
+          </span>
+
+          <strong>
+            {{ pendingPayments }}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         ORGANIZATION TEAM
+         ======================================================= -->
+
+    <div class="dashboard-card team-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Distribution Team
+          </h2>
+
+          <p>
+            Users with access to this organization
+          </p>
+
+        </div>
+        @if (canManageUsers) {
+          <a class="dashboard-card-link" routerLink="/users">
+            Manage users
+          </a>
+        }
+
+      </div>
+
+
+      <div class="team-stat">
+
+        <div class="team-icon">
+          U
+        </div>
+
+        <div>
+
+          <span>
+            Organization Users
+          </span>
+
+          <strong>
+            {{ totalUsers }}
+          </strong>
+
+          <small>
+            Active users and staff accounts
+          </small>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="dashboard-card organization-card">
+
+      <div class="card-header">
+
+        <div>
+          <h2>Organization Overview</h2>
+          <p>Current organization information</p>
+        </div>
+
+        @if (canManageUsers) {
+          <a class="dashboard-card-link" routerLink="/users">
+            Manage users
+          </a>
+        }
+
+      </div>
+
+      <div class="organization-info">
+
+        <div class="info-row">
+          <span>Organization</span>
+          <strong>{{ organizationName }}</strong>
+        </div>
+
+        <div class="info-row">
+          <span>Organization Type</span>
+          <strong>{{ organizationType }}</strong>
+        </div>
+
+        <div class="info-row">
+          <span>Users</span>
+          <strong>{{ totalUsers }}</strong>
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- =======================================================
+         PRODUCT CATALOG
+         ======================================================= -->
+
+    <div class="dashboard-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>
+            Product Catalogue
+          </h2>
+
+          <p>
+            Products currently available to your organization
+          </p>
+
+        </div>
+        <a class="dashboard-card-link" routerLink="/products">
+          Browse products
+        </a>
+
+      </div>
+
+
+      <div class="catalog-summary">
+
+        <div>
+
+          <span>
+            Total Products
+          </span>
+
+          <strong>
+            {{ totalProducts }}
+          </strong>
+
+        </div>
+
+
+        <div>
+
+          <span>
+            Active Products
+          </span>
+
+          <strong>
+            {{ activeProducts }}
+          </strong>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+</div>

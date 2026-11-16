@@ -1,0 +1,671 @@
+<div class="reports-page">
+
+  <!-- ==========================================
+       PAGE HEADER
+       ========================================== -->
+
+  <div class="page-header">
+
+    <div class="header-content">
+
+      <div>
+        <h1>Reports &amp; Analytics</h1>
+
+        <p>
+          Monitor platform performance, financial activity,
+          orders, deliveries, and inventory insights.
+        </p>
+      </div>
+
+      <div class="header-actions">
+
+        <div class="period-selector">
+
+          <label for="report-period">
+            Reporting period
+          </label>
+
+          <select
+            id="report-period"
+            [(ngModel)]="selectedPeriod"
+            (change)="changePeriod()"
+          >
+            <option value="7_DAYS">
+              Last 7 days
+            </option>
+
+            <option value="30_DAYS">
+              Last 30 days
+            </option>
+
+            <option value="3_MONTHS">
+              Last 3 months
+            </option>
+
+            <option value="6_MONTHS">
+              Last 6 months
+            </option>
+
+            <option value="12_MONTHS">
+              Last 12 months
+            </option>
+          </select>
+
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <app-report-download
+    title="General Platform Report"
+    filename="general-platform-report"
+    [columns]="reportColumns"
+    [data]="reportData"
+  ></app-report-download>
+
+
+  <!-- ==========================================
+       ERROR MESSAGE
+       ========================================== -->
+
+  @if (errorMessage) {
+
+    <div class="error-banner">
+
+      <div class="error-icon">
+        !
+      </div>
+
+      <div>
+        <strong>Unable to load reports</strong>
+
+        <p>
+          {{ errorMessage }}
+        </p>
+      </div>
+
+      <button
+        type="button"
+        (click)="loadReports()"
+      >
+        Try again
+      </button>
+
+    </div>
+
+  }
+
+
+  <!-- ==========================================
+       KPI CARDS
+       ========================================== -->
+
+  <section class="kpi-grid">
+
+    <!-- Revenue -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-icon revenue-icon">
+          R
+        </div>
+
+        <span class="change positive">
+          +{{ revenueChange }}%
+        </span>
+
+      </div>
+
+      <div class="kpi-label">
+        Total Revenue
+      </div>
+
+      <div class="kpi-value">
+        KES {{ totalRevenue | number:'1.0-0' }}
+      </div>
+
+      <div class="kpi-period">
+        {{ getPeriodLabel() }}
+      </div>
+
+    </div>
+
+
+    <!-- Orders -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-icon orders-icon">
+          O
+        </div>
+
+        <span class="change positive">
+          +{{ ordersChange }}%
+        </span>
+
+      </div>
+
+      <div class="kpi-label">
+        Total Orders
+      </div>
+
+      <div class="kpi-value">
+        {{ totalOrders | number:'1.0-0' }}
+      </div>
+
+      <div class="kpi-period">
+        {{ getPeriodLabel() }}
+      </div>
+
+    </div>
+
+
+    <!-- Payments -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-icon payments-icon">
+          P
+        </div>
+
+        <span class="change positive">
+          +{{ paymentsChange }}%
+        </span>
+
+      </div>
+
+      <div class="kpi-label">
+        Total Payments
+      </div>
+
+      <div class="kpi-value">
+        KES {{ totalPayments | number:'1.0-0' }}
+      </div>
+
+      <div class="kpi-period">
+        {{ getPeriodLabel() }}
+      </div>
+
+    </div>
+
+
+    <!-- Deliveries -->
+
+    <div class="kpi-card">
+
+      <div class="kpi-top">
+
+        <div class="kpi-icon deliveries-icon">
+          D
+        </div>
+
+        <span class="change positive">
+          +{{ deliveriesChange }}%
+        </span>
+
+      </div>
+
+      <div class="kpi-label">
+        Total Deliveries
+      </div>
+
+      <div class="kpi-value">
+        {{ totalDeliveries | number:'1.0-0' }}
+      </div>
+
+      <div class="kpi-period">
+        {{ getPeriodLabel() }}
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================================
+       SECONDARY METRICS
+       ========================================== -->
+
+  <section class="secondary-metrics">
+
+    <div class="metric-card">
+
+      <div class="metric-label">
+        Average Order Value
+      </div>
+
+      <div class="metric-value">
+        KES {{ getAverageOrderValue() | number:'1.0-0' }}
+      </div>
+
+      <div class="metric-description">
+        Average revenue generated per order
+      </div>
+
+    </div>
+
+
+    <div class="metric-card">
+
+      <div class="metric-label">
+        Delivery Success Rate
+      </div>
+
+      <div class="metric-value">
+        {{ getDeliverySuccessRate() | number:'1.0-1' }}%
+      </div>
+
+      <div class="metric-description">
+        Successfully completed deliveries
+      </div>
+
+    </div>
+
+
+    <div class="metric-card">
+
+      <div class="metric-label">
+        Payment Success Rate
+      </div>
+
+      <div class="metric-value">
+        {{ getPaymentSuccessRate() | number:'1.0-1' }}%
+      </div>
+
+      <div class="metric-description">
+        Successfully completed payments
+      </div>
+
+    </div>
+
+
+    <div class="metric-card">
+
+      <div class="metric-label">
+        Active Organizations
+      </div>
+
+      <div class="metric-value">
+        {{ totalOrganizations | number:'1.0-0' }}
+      </div>
+
+      <div class="metric-description">
+        Organizations currently using the platform
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================================
+       REVENUE + ORDERS CHARTS
+       ========================================== -->
+
+  <section class="chart-grid">
+
+    <!-- Revenue Chart -->
+
+    <div class="chart-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>Revenue Overview</h2>
+
+          <p>
+            Revenue for the selected period
+          </p>
+
+        </div>
+
+        <div class="chart-summary">
+          KES {{ totalRevenue | number:'1.0-0' }}
+        </div>
+
+      </div>
+
+
+      <div class="chart-canvas">
+  @if (revenueData.length > 0) {
+    <canvas
+      baseChart
+      [type]="revenueChartType"
+      [data]="revenueChartData"
+      [options]="revenueChartOptions">
+    </canvas>
+  } @else {
+    <div class="chart-empty-state">
+      <p>No revenue data available yet.</p>
+      <span>Revenue trends will appear when confirmed payments are recorded.</span>
+    </div>
+  }
+</div>
+    </div>
+         <!-- Orders Chart -->
+
+    <div class="chart-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>Order Volume</h2>
+
+          <p>
+            Orders for the selected period
+          </p>
+
+        </div>
+
+        <div class="chart-summary">
+          {{ totalOrders | number:'1.0-0' }} orders
+        </div>
+
+      </div>
+
+
+      <div class="chart-canvas">
+  @if (orderData.length > 0) {
+    <canvas
+      baseChart
+      [type]="orderChartType"
+      [data]="orderChartData"
+      [options]="orderChartOptions">
+    </canvas>
+  } @else {
+    <div class="chart-empty-state">
+      <p>No order data available yet.</p>
+      <span>Order activity will appear when orders are created.</span>
+    </div>
+  }
+</div>
+    </div>
+
+  </section>
+
+
+  <!-- ==========================================
+       PAYMENT + DELIVERY ANALYTICS
+       ========================================== -->
+
+  <section class="analytics-grid">
+
+    <!-- Payment Status -->
+
+    <div class="analytics-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>Payment Status</h2>
+
+          <p>
+            Payment transaction distribution
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="status-list">
+
+        @for (
+          item of paymentStatusData;
+          track item.status
+        ) {
+
+          <div class="status-row">
+
+            <div class="status-row-top">
+
+              <div class="status-name">
+
+                <span
+                  class="status-dot"
+                  [ngClass]="getPaymentStatusClass(item.status)"
+                ></span>
+
+                {{ item.status }}
+
+              </div>
+
+              <strong>
+                {{ item.count | number:'1.0-0' }}
+              </strong>
+
+            </div>
+
+
+            <div class="progress-track">
+
+              <div
+                class="progress-fill"
+                [ngClass]="getPaymentStatusClass(item.status)"
+                [style.width.%]="getPaymentPercentage(item.count)"
+              ></div>
+
+            </div>
+
+
+            <div class="status-percentage">
+              {{ getPaymentPercentage(item.count) | number:'1.0-1' }}%
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+
+    <!-- Delivery Status -->
+
+    <div class="analytics-card">
+
+      <div class="card-header">
+
+        <div>
+
+          <h2>Delivery Status</h2>
+
+          <p>
+            Current delivery distribution
+          </p>
+
+        </div>
+
+      </div>
+
+
+      <div class="status-list">
+
+        @for (
+          item of deliveryStatusData;
+          track item.status
+        ) {
+
+          <div class="status-row">
+
+            <div class="status-row-top">
+
+              <div class="status-name">
+
+                <span
+                  class="status-dot"
+                  [ngClass]="getDeliveryStatusClass(item.status)"
+                ></span>
+
+                {{ item.status }}
+
+              </div>
+
+              <strong>
+                {{ item.count | number:'1.0-0' }}
+              </strong>
+
+            </div>
+
+
+            <div class="progress-track">
+
+              <div
+                class="progress-fill"
+                [ngClass]="getDeliveryStatusClass(item.status)"
+                [style.width.%]="getDeliveryPercentage(item.count)"
+              ></div>
+
+            </div>
+
+
+            <div class="status-percentage">
+              {{ getDeliveryPercentage(item.count) | number:'1.0-1' }}%
+            </div>
+
+          </div>
+
+        }
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================================
+       INVENTORY SUMMARY
+       ========================================== -->
+
+  <section class="inventory-section">
+
+    <div class="inventory-header">
+
+      <div>
+
+        <h2>Inventory Overview</h2>
+
+        <p>
+          Current inventory position across the platform
+        </p>
+
+      </div>
+
+      <div class="inventory-value">
+        KES {{ inventorySummary.inventoryValue | number:'1.0-0' }}
+      </div>
+
+    </div>
+
+
+    <div class="inventory-grid">
+
+      <div class="inventory-stat">
+
+        <div class="inventory-stat-label">
+          Total Products
+        </div>
+
+        <div class="inventory-stat-value">
+          {{ inventorySummary.totalProducts | number:'1.0-0' }}
+        </div>
+
+        <div class="inventory-stat-description">
+          Active products in the catalog
+        </div>
+
+      </div>
+
+
+      <div class="inventory-stat">
+
+        <div class="inventory-stat-label">
+          Total Units
+        </div>
+
+        <div class="inventory-stat-value">
+          {{ inventorySummary.totalUnits | number:'1.0-0' }}
+        </div>
+
+        <div class="inventory-stat-description">
+          Units currently in inventory
+        </div>
+
+      </div>
+
+
+      <div class="inventory-stat warning-stat">
+
+        <div class="inventory-stat-label">
+          Low Stock
+        </div>
+
+        <div class="inventory-stat-value">
+          {{ inventorySummary.lowStock | number:'1.0-0' }}
+        </div>
+
+        <div class="inventory-stat-description">
+          Products requiring attention
+        </div>
+
+      </div>
+
+
+      <div class="inventory-stat danger-stat">
+
+        <div class="inventory-stat-label">
+          Out of Stock
+        </div>
+
+        <div class="inventory-stat-value">
+          {{ inventorySummary.outOfStock | number:'1.0-0' }}
+        </div>
+
+        <div class="inventory-stat-description">
+          Products currently unavailable
+        </div>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- ==========================================
+       LOADING OVERLAY
+       ========================================== -->
+
+  @if (loading) {
+
+    <div class="loading-overlay">
+
+      <div class="loading-card">
+
+        <div class="loading-spinner"></div>
+
+        <span>
+          Loading reports...
+        </span>
+
+      </div>
+
+    </div>
+
+  }
+
+</div>

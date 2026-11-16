@@ -1,0 +1,8 @@
+{
+  "/api": {
+    "target": "https://distro-backend-09e7.onrender.com",
+    "secure": true,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

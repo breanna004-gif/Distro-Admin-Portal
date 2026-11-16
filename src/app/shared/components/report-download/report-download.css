@@ -1,0 +1,99 @@
+
+:host {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+  margin: 0;
+}
+
+.report-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: auto;
+  margin-left: auto;
+  color: var(--text-primary);
+}
+
+.download-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.download-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 8px 13px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card-background);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--theme-transition);
+  white-space: nowrap;
+}
+
+.download-button:hover:not(:disabled) {
+  background: var(--hover-background);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.download-button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.download-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.download-button svg {
+  flex-shrink: 0;
+}
+
+.excel-button svg {
+  color: var(--success);
+}
+
+.pdf-button svg {
+  color: var(--danger);
+}
+
+.download-error,
+.download-hint {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: right;
+  font-size: 11px;
+}
+
+.download-error {
+  color: var(--danger);
+}
+
+.download-hint {
+  color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+  :host {
+    justify-content: flex-start;
+  }
+
+  .report-download,
+  .download-actions {
+    justify-content: flex-start;
+  }
+}

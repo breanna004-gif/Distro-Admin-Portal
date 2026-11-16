@@ -1,0 +1,371 @@
+.sidebar {
+  width: 250px;
+  min-height: 100vh;
+  background: var(--card-background);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  box-shadow: var(--shadow-sm);
+  z-index: 10;
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+.sidebar {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* =========================================================
+   BRAND
+   ========================================================= */
+
+.brand {
+  height: 86px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 20px;
+  flex-shrink: 0;
+}
+
+.brand-logo {
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.brand-text {
+  min-width: 0;
+}
+
+.brand-text h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+}
+
+.brand-text span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+/* =========================================================
+   NAVIGATION
+   ========================================================= */
+
+.navigation {
+  flex: 1;
+  padding: 14px 14px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.navigation::-webkit-scrollbar {
+  width: 5px;
+}
+
+.navigation::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.navigation::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 10px;
+}
+
+.section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  margin: 22px 12px 9px;
+}
+
+.section-title:first-child {
+  margin-top: 5px;
+}
+
+/* =========================================================
+   NAV ITEMS
+   ========================================================= */
+
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 13px;
+  margin-bottom: 4px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.nav-item:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  transform: translateX(2px);
+}
+
+.nav-item.active {
+  background: linear-gradient(
+    135deg,
+    var(--primary-dark),
+    var(--primary)
+  );
+  color: #ffffff;
+  font-weight: 650;
+  box-shadow:
+    0 7px 18px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.nav-item.active:hover {
+  transform: translateX(2px);
+}
+
+/* =========================================================
+   ACTIVE INDICATOR
+   ========================================================= */
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  width: 3px;
+  height: 22px;
+  border-radius: 0 4px 4px 0;
+  background: var(--primary);
+  transform: translateY(-50%);
+}
+
+/* =========================================================
+   ICONS
+   ========================================================= */
+
+.icon {
+  width: 21px;
+  height: 21px;
+  flex: 0 0 21px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    transform 0.2s ease,
+    stroke-width 0.2s ease;
+}
+
+.nav-item:hover .icon svg {
+  transform: scale(1.05);
+  stroke-width: 2;
+}
+
+.nav-item.active .icon svg {
+  stroke-width: 2;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.sidebar-footer {
+  padding: 15px;
+  border-top: 1px solid var(--border);
+  background: var(--card-background);
+  flex-shrink: 0;
+}
+
+.admin-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 13px;
+}
+
+.avatar {
+  width: 37px;
+  height: 37px;
+  flex: 0 0 37px;
+  border-radius: 50%;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-profile strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.admin-profile span {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+/* =========================================================
+   LOGOUT
+   ========================================================= */
+
+.logout-button {
+  width: 100%;
+  padding: 9px;
+  border: 1px solid transparent;
+  background: var(--soft-background);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.logout-button svg {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logout-button:hover {
+  background: var(--danger-background);
+  color: var(--danger);
+  border-color: color-mix(in srgb, var(--danger) 12%, transparent);
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   DARK MODE REFINEMENTS
+   ========================================================= */
+
+:host-context(.dark-mode) .sidebar {
+  box-shadow:
+    4px 0 20px rgba(0, 0, 0, 0.16);
+}
+
+:host-context(.dark-mode) .brand-logo {
+  box-shadow:
+    0 7px 20px rgba(0, 0, 0, 0.28);
+}
+
+:host-context(.dark-mode) .nav-item:hover {
+  background: rgba(96, 165, 250, 0.09);
+}
+
+:host-context(.dark-mode) .nav-item.active {
+  box-shadow:
+    0 7px 20px rgba(0, 0, 0, 0.28);
+}
+
+:host-context(.dark-mode) .avatar {
+  background: rgba(96, 165, 250, 0.10);
+  border-color: rgba(96, 165, 250, 0.16);
+}
+
+:host-context(.dark-mode) .logout-button {
+  background: var(--soft-background);
+}
+
+:host-context(.dark-mode) .logout-button:hover {
+  background: var(--danger-background);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .brand {
+    padding: 0 16px;
+  }
+
+  .navigation {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+  .nav-item {
+    padding: 10px 11px;
+  }
+
+  .nav-item.active::before {
+    left: -10px;
+  }
+}
+
+@media (max-width: 700px) {
+  .sidebar {
+    width: 210px;
+  }
+
+  .brand-text h2 {
+    font-size: 15px;
+  }
+
+  .brand-text span {
+    font-size: 10px;
+  }
+
+  .section-title {
+    margin-left: 10px;
+  }
+}

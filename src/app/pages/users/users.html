@@ -1,0 +1,841 @@
+<div class="users-page">
+
+  <!-- ============================================================ -->
+  <!-- HEADER -->
+  <!-- ============================================================ -->
+
+  <div class="page-header">
+
+    <div>
+
+      <span class="eyebrow">
+        USER MANAGEMENT
+      </span>
+
+      <h2>
+        Users
+      </h2>
+
+      <p>
+        @if (isPlatformAdmin) {
+          View all user accounts across the supply chain platform.
+        } @else {
+          View customer accounts for your organization.
+        }
+      </p>
+
+    </div>
+
+  </div>
+
+
+  <!-- ============================================================ -->
+  <!-- KPI CARDS -->
+  <!-- ============================================================ -->
+
+  <div class="stats-grid">
+
+    <!-- TOTAL USERS -->
+
+    <div class="stat-card blue">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          👥
+        </div>
+
+        <span class="trend">
+          Total
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Total Users
+      </span>
+
+      <strong>
+        {{ isPlatformAdmin ? totalSystemUsers : visibleUsers.length }}
+      </strong>
+
+      <span class="stat-note">
+        Registered users
+      </span>
+
+    </div>
+
+
+    <!-- VERIFIED -->
+
+    <div class="stat-card green">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          ✓
+        </div>
+
+        <span class="trend">
+          Verified
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Phone Verified
+      </span>
+
+      <strong>
+        {{
+          visibleUsers.filter(
+            user => user.phoneVerified
+          ).length
+        }}
+      </strong>
+
+      <span class="stat-note">
+        Users with a verified phone number
+      </span>
+
+    </div>
+
+
+    <!-- UNVERIFIED -->
+
+    <div class="stat-card orange">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          ⏱
+        </div>
+
+        <span class="trend neutral">
+          Unverified
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Phone Unverified
+      </span>
+
+      <strong>
+        {{
+          visibleUsers.filter(
+            user => !user.phoneVerified
+          ).length
+        }}
+      </strong>
+
+      <span class="stat-note">
+        Users without a verified phone number
+      </span>
+
+    </div>
+
+
+    <!-- ADMINISTRATORS -->
+
+    <div class="stat-card purple">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          ★
+        </div>
+
+        <span class="trend">
+          Admins
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Administrators
+      </span>
+
+      <strong>
+        {{
+          visibleUsers.filter(
+            user =>
+            user.role === 'SUPER_ADMIN' ||
+            user.role === 'PLATFORM_ADMIN' ||
+            user.role === 'ORGANIZATION_ADMIN' ||
+            user.role === 'MANUFACTURER_ADMIN' ||
+            user.role === 'DISTRIBUTOR_ADMIN'
+          ).length
+        }}
+      </strong>
+
+      <span class="stat-note">
+        Platform and organization administrators
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- ============================================================ -->
+  <!-- USERS TABLE CARD -->
+  <!-- ============================================================ -->
+
+  <div class="users-card">
+
+    <!-- TABLE HEADER -->
+
+    <div class="table-header">
+
+      <div>
+
+        <h3>
+          {{ isPlatformAdmin ? 'All System Users' : 'Customers' }}
+        </h3>
+
+        <p>
+          @if (isPlatformAdmin) {
+            Review accounts for every platform role. Protected administrator accounts are read-only.
+          } @else {
+            View customer accounts associated with your organization.
+          }
+        </p>
+
+      </div>
+
+
+      <div class="table-actions">
+
+        <!-- SEARCH -->
+
+        <div class="search-box">
+
+          <svg
+            class="search-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+
+            <circle
+              cx="11"
+              cy="11"
+              r="7"
+            ></circle>
+
+            <path
+              d="M20 20l-4-4"
+            ></path>
+
+          </svg>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="searchUsers()"
+            placeholder="Search users..."
+          />
+
+        </div>
+
+
+      </div>
+
+    </div>
+
+
+    <!-- ========================================================== -->
+    <!-- TABLE -->
+    <!-- ========================================================== -->
+
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Phone Number</th>
+            <th>Role</th>
+            <th>Verification Status</th>
+            <th>{{ isPlatformAdmin ? 'Status / Actions' : 'Actions' }}</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          <!-- LOADING -->
+
+          @if (loading) {
+
+            <tr>
+
+              <td
+                colspan="6"
+                class="empty-state"
+              >
+                Loading users...
+              </td>
+
+            </tr>
+
+          }
+
+
+          <!-- ERROR -->
+
+          @else if (errorMessage) {
+
+            <tr>
+
+              <td
+                colspan="6"
+                class="empty-state"
+              >
+
+                {{ errorMessage }}
+
+              </td>
+
+            </tr>
+
+          }
+
+
+          <!-- EMPTY -->
+
+          @else if (users.length === 0) {
+
+            <tr>
+
+              <td
+                colspan="6"
+                class="empty-state"
+              >
+                No users found.
+              </td>
+
+            </tr>
+
+          }
+
+
+          <!-- USERS -->
+
+          @else {
+
+            @for (
+              user of paginatedUsers;
+              track user.id
+            ) {
+
+              <tr>
+
+                <td>
+                  <div class="user-cell">
+                    <div class="user-avatar">
+                      {{
+                        user.name
+                          ? user.name.charAt(0).toUpperCase()
+                          : '?'
+                      }}
+                    </div>
+                    <div class="user-details">
+                      <strong>{{ user.name }}</strong>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  {{ user.email }}
+                </td>
+
+                <td>{{ user.phone || '—' }}</td>
+
+                <td>
+                  <span
+                    class="role-badge"
+                    [class.distributor]="
+                      user.role === 'DISTRIBUTOR_ADMIN' ||
+                      user.role === 'DISTRIBUTOR_STAFF'
+                    "
+                    [class.manufacturer]="
+                      user.role === 'MANUFACTURER_ADMIN' ||
+                      user.role === 'MANUFACTURER_STAFF'
+                    "
+                    [class.driver]="user.role === 'DRIVER'"
+                    [class.customer]="user.role === 'CUSTOMER'"
+                    [class.admin]="
+                      user.role === 'SUPER_ADMIN' ||
+                      user.role === 'PLATFORM_ADMIN' ||
+                      user.role === 'ORGANIZATION_ADMIN'
+                    "
+                  >
+                    {{ getRoleLabel(user.role) }}
+                  </span>
+                </td>
+
+                <td>
+                  <span
+                    class="verification-badge"
+                    [class.verified]="user.phoneVerified"
+                    [class.unverified]="!user.phoneVerified"
+                  >
+                    {{ user.phoneVerified ? 'Verified' : 'Not verified' }}
+                  </span>
+                </td>
+
+                
+<td>
+  <div class="user-action-buttons">
+    <button
+      type="button"
+      class="view-button"
+      (click)="viewUser(user.id)"
+      [disabled]="actionLoading || deleteLoadingUserId === user.id"
+    >
+      View
+    </button>
+
+    @if (isPlatformAdmin && !isProtectedUser(user)) {
+      @if (user.status === 'ACTIVE') {
+        <button
+          type="button"
+          class="delete-button"
+          (click)="deactivateUser(user)"
+          [disabled]="actionLoading"
+        >
+          {{ actionUserId === user.id ? 'Updating...' : 'Deactivate' }}
+        </button>
+      } @else {
+        <button
+          type="button"
+          class="view-button"
+          (click)="activateUser(user)"
+          [disabled]="actionLoading"
+        >
+          {{ actionUserId === user.id ? 'Updating...' : 'Activate' }}
+        </button>
+      }
+    } @else if (!isPlatformAdmin) {
+      <button
+        type="button"
+        class="delete-button"
+        (click)="deleteUser(user)"
+        [disabled]="
+          deleteLoadingUserId === user.id ||
+          actionLoading
+        "
+      >
+        {{
+          deleteLoadingUserId === user.id
+            ? 'Deleting...'
+            : 'Delete'
+        }}
+      </button>
+    }
+  </div>
+</td>
+
+              </tr>
+
+            }
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- ========================================================== -->
+    <!-- PAGINATION -->
+    <!-- ========================================================== -->
+
+    <div class="pagination">
+
+      <span>
+
+        Showing
+        {{ paginatedUsers.length }}
+        of
+        {{ users.length }}
+        users
+
+      </span>
+
+
+      <div>
+
+        <button
+          type="button"
+          class="page-button"
+
+          (click)="previousPage()"
+
+          [disabled]="
+            currentPage === 0
+          "
+        >
+          ‹
+        </button>
+
+
+        <button
+          type="button"
+          class="page-button active"
+        >
+          {{ currentPage + 1 }}
+        </button>
+
+
+        <button
+          type="button"
+          class="page-button"
+
+          (click)="nextPage()"
+
+          [disabled]="
+            currentPage >= totalPages - 1
+          "
+        >
+          ›
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ============================================================ -->
+<!-- VIEW USER MODAL -->
+<!-- ============================================================ -->
+
+@if (showViewUserModal) {
+
+  <div
+    class="modal-overlay"
+
+    (click)="closeViewUserModal()"
+  >
+
+    <div
+      class="modal-card view-user-modal"
+
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- HEADER -->
+
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            USER DETAILS
+          </span>
+
+          <h3>
+            View User
+          </h3>
+
+          <p>
+            Review account information and platform access.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="modal-close"
+
+          (click)="closeViewUserModal()"
+
+          [disabled]="loadingUser"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- LOADING -->
+
+      @if (loadingUser) {
+
+        <div class="user-details-loading">
+          Loading user details...
+        </div>
+
+      }
+
+
+      <!-- ERROR -->
+
+      @else if (viewUserError) {
+
+        <div class="modal-error">
+          {{ viewUserError }}
+        </div>
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+
+            (click)="closeViewUserModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+
+      <!-- DETAILS -->
+
+      @else if (selectedUser) {
+
+        <div class="user-details-content">
+
+          <!-- PROFILE -->
+
+          <div class="user-profile-summary">
+
+            <div class="large-user-avatar">
+
+              {{
+                selectedUser.name
+                  ? selectedUser.name.charAt(0).toUpperCase()
+                  : '?'
+              }}
+
+            </div>
+
+
+            <div class="profile-summary-info">
+
+              <h4>
+                {{ selectedUser.name }}
+              </h4>
+
+              <p>
+                {{ selectedUser.email }}
+              </p>
+
+
+              <div class="profile-badges">
+
+                <span
+                  class="role-badge"
+
+                  [class.distributor]="
+                    selectedUser.role === 'DISTRIBUTOR_ADMIN' ||
+                    selectedUser.role === 'DISTRIBUTOR_STAFF'
+                  "
+
+                  [class.manufacturer]="
+                    selectedUser.role === 'MANUFACTURER_ADMIN' ||
+                    selectedUser.role === 'MANUFACTURER_STAFF'
+                  "
+
+                  [class.driver]="
+                    selectedUser.role === 'DRIVER'
+                  "
+
+                  [class.customer]="
+                    selectedUser.role === 'CUSTOMER'
+                  "
+
+                  [class.admin]="
+                    selectedUser.role === 'SUPER_ADMIN' ||
+                    selectedUser.role === 'PLATFORM_ADMIN' ||
+                    selectedUser.role === 'ORGANIZATION_ADMIN'
+                  "
+                >
+                  {{ getRoleLabel(selectedUser.role) }}
+                </span>
+
+
+                <span
+                  class="status-badge"
+
+                  [class.active]="
+                    selectedUser.status === 'ACTIVE'
+                  "
+
+                  [class.inactive]="
+                    selectedUser.status === 'DEACTIVATED'
+                  "
+
+                  [class.pending]="
+                    selectedUser.status === 'PENDING'
+                  "
+
+                  [class.suspended]="
+                    selectedUser.status === 'SUSPENDED'
+                  "
+                >
+                  {{ selectedUser.status }}
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- ACCOUNT INFORMATION -->
+
+          <div class="details-section">
+
+            <h4>
+              Account Information
+            </h4>
+
+
+            <div class="details-grid">
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  User ID
+                </span>
+
+                <strong>
+                  {{ selectedUser.id }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Role
+                </span>
+
+                <strong>
+                  {{ getRoleLabel(selectedUser.role) }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Email Address
+                </span>
+
+                <strong>
+                  {{ selectedUser.email }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Phone Number
+                </span>
+
+                <strong>
+                  {{
+                    selectedUser.phone ||
+                    'Not provided'
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Organization
+                </span>
+
+                <strong>
+                  {{
+                    selectedUser.organizationName ||
+                    'Independent'
+                  }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Account Status
+                </span>
+
+                <strong>
+                  {{ selectedUser.status }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Phone Verification
+                </span>
+
+                <strong>
+                  {{
+                    selectedUser.phoneVerified
+                      ? 'Verified'
+                      : 'Not verified'
+                  }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- FOOTER -->
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+
+            (click)="closeViewUserModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+}

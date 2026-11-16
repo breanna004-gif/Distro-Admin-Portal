@@ -1,0 +1,938 @@
+<div class="inventory-page">
+
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div>
+      <span class="eyebrow">INVENTORY MANAGEMENT</span>
+
+      <h2>Inventory</h2>
+
+      <p>
+        Monitor stock levels, availability and inventory across warehouses.
+      </p>
+    </div>
+
+    <button
+      class="add-button"
+      type="button"
+      (click)="openAddInventoryModal()"
+    >
+      <span>+</span>
+      Add Inventory
+    </button>
+  </div>
+
+  <app-report-download
+    title="Inventory Report"
+    filename="inventory-report"
+    [columns]="reportColumns"
+    [data]="reportData"
+  ></app-report-download>
+
+
+  <!-- ERROR -->
+  @if (errorMessage) {
+    <div class="modal-error">
+      {{ errorMessage }}
+    </div>
+  }
+
+
+  <!-- KPI CARDS -->
+  <div class="stats-grid">
+
+    <!-- Total Items -->
+    <div class="stat-card blue">
+      <div class="stat-top">
+        <div class="stat-icon">I</div>
+
+        <span class="trend">
+          Live
+        </span>
+      </div>
+
+      <span class="stat-label">
+        Inventory Items
+      </span>
+
+      <strong>
+        {{ totalInventoryItems }}
+      </strong>
+
+      <span class="stat-note">
+        Current inventory records
+      </span>
+    </div>
+
+
+    <!-- In Stock -->
+    <div class="stat-card green">
+      <div class="stat-top">
+        <div class="stat-icon">✓</div>
+
+        <span class="trend">
+          Available
+        </span>
+      </div>
+
+      <span class="stat-label">
+        In Stock
+      </span>
+
+      <strong>
+        {{ inStockCount }}
+      </strong>
+
+      <span class="stat-note">
+        Healthy stock levels
+      </span>
+    </div>
+
+
+    <!-- Low Stock -->
+    <div class="stat-card orange">
+      <div class="stat-top">
+        <div class="stat-icon">!</div>
+
+        <span class="trend neutral">
+          Attention
+        </span>
+      </div>
+
+      <span class="stat-label">
+        Low Stock
+      </span>
+
+      <strong>
+        {{ lowStockCount }}
+      </strong>
+
+      <span class="stat-note">
+        Reorder recommended
+      </span>
+    </div>
+
+
+    <!-- Out of Stock -->
+    <div class="stat-card purple">
+      <div class="stat-top">
+        <div class="stat-icon">0</div>
+
+        <span class="trend neutral">
+          Critical
+        </span>
+      </div>
+
+      <span class="stat-label">
+        Out of Stock
+      </span>
+
+      <strong>
+        {{ outOfStockCount }}
+      </strong>
+
+      <span class="stat-note">
+        Requires restocking
+      </span>
+    </div>
+
+  </div>
+
+
+  <!-- INVENTORY CARD -->
+  <div class="inventory-card">
+
+    <!-- TABLE HEADER -->
+    <div class="table-header">
+
+      <div>
+        <h3>Inventory Records</h3>
+
+        <p>
+          View and manage stock across the supply chain.
+        </p>
+      </div>
+
+      <div class="table-actions">
+
+        <div class="search-box">
+          <span>⌕</span>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="searchInventory()"
+            placeholder="Search inventory..."
+          />
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- TABLE -->
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Organization</th>
+            <th>Warehouse</th>
+            <th>Quantity</th>
+            <th>Available</th>
+            <th>Reorder Level</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+
+        <tbody>
+
+          @if (loading) {
+
+            <tr>
+              <td
+                colspan="8"
+                class="empty-state"
+              >
+                Loading inventory...
+              </td>
+            </tr>
+
+          }
+
+          @else if (filteredInventory.length === 0) {
+
+            <tr>
+              <td
+                colspan="8"
+                class="empty-state"
+              >
+                No inventory records found.
+              </td>
+            </tr>
+
+          }
+
+          @else {
+
+            @for (
+              item of filteredInventory;
+              track item.id
+            ) {
+
+              <tr>
+
+                <!-- Product -->
+                <td>
+                  <div class="product-cell">
+
+                    <div class="product-avatar">
+                      {{ item.productName?.charAt(0) || '?' }}
+                    </div>
+
+                    <div class="product-details">
+
+                      <strong>
+                        {{ item.productName }}
+                      </strong>
+
+                      <span>
+                        SKU: {{ item.sku }}
+                      </span>
+
+                    </div>
+
+                  </div>
+                </td>
+
+
+                <!-- Organization -->
+                <td>
+                  {{ item.organizationName || 'Independent' }}
+                </td>
+
+
+                <!-- Warehouse -->
+                <td>
+                  <span class="warehouse-name">
+                    {{ item.warehouseName || 'Not assigned' }}
+                  </span>
+                </td>
+
+
+                <!-- Quantity -->
+                <td>
+                  <span class="quantity-value">
+                    {{ item.quantity | number }}
+                  </span>
+                </td>
+
+
+                <!-- Available -->
+                <td>
+                  <div class="available-cell">
+
+                    <strong>
+                      {{
+                        item.availableQuantity ??
+                        item.quantity | number
+                      }}
+                    </strong>
+
+                    @if (
+                      item.reservedQuantity &&
+                      item.reservedQuantity > 0
+                    ) {
+                      <span>
+                        {{ item.reservedQuantity | number }}
+                        reserved
+                      </span>
+                    }
+
+                  </div>
+                </td>
+
+
+                <!-- Reorder Level -->
+                <td>
+                  {{ item.reorderLevel ?? 0 | number }}
+                </td>
+
+
+                <!-- Status -->
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [class.in-stock]="item.status === 'IN_STOCK'"
+                    [class.low-stock]="item.status === 'LOW_STOCK'"
+                    [class.out-of-stock]="item.status === 'OUT_OF_STOCK'"
+                    [class.overstocked]="item.status === 'OVERSTOCKED'"
+                  >
+                    {{ item.status?.replace('_', ' ') }}
+                  </span>
+
+                </td>
+
+
+                <!-- Action -->
+                <td>
+
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="viewInventory(item.id)"
+                  >
+                    View
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- PAGINATION -->
+    <div class="pagination">
+
+      <span>
+        Showing {{ filteredInventory.length }}
+        of {{ totalElements }} inventory records
+      </span>
+
+      <div>
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+        >
+          ‹
+        </button>
+
+        <button
+          type="button"
+          class="page-button active"
+        >
+          {{ currentPage + 1 }}
+        </button>
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+        >
+          ›
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ================================================================
+     ADD INVENTORY MODAL
+================================================================ -->
+
+@if (showAddInventoryModal) {
+
+  <div
+    class="modal-overlay"
+    (click)="closeAddInventoryModal()"
+  >
+
+    <div
+      class="modal-card"
+      (click)="$event.stopPropagation()"
+    >
+
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            INVENTORY MANAGEMENT
+          </span>
+
+          <h3>
+            Add Inventory
+          </h3>
+
+          <p>
+            Register a new inventory record.
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeAddInventoryModal()"
+          [disabled]="savingInventory"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      @if (addInventoryError) {
+        <div class="modal-error">
+          {{ addInventoryError }}
+        </div>
+      }
+
+
+      <form
+        class="inventory-form"
+        (ngSubmit)="saveInventory()"
+      >
+
+        <!-- Product -->
+        <div class="form-group">
+
+          <label for="productName">
+            Product Name
+            <span>*</span>
+          </label>
+
+          <input
+            id="productName"
+            type="text"
+            name="productName"
+            [(ngModel)]="newInventory.productName"
+            placeholder="Enter product name"
+            [disabled]="savingInventory"
+          />
+
+        </div>
+
+
+        <!-- SKU -->
+        <div class="form-group">
+
+          <label for="sku">
+            SKU
+            <span>*</span>
+          </label>
+
+          <input
+            id="sku"
+            type="text"
+            name="sku"
+            [(ngModel)]="newInventory.sku"
+            placeholder="e.g. PROD-001"
+            [disabled]="savingInventory"
+          />
+
+        </div>
+
+
+        <!-- Organization -->
+        <div class="form-group">
+
+          <label for="organizationName">
+            Organization
+          </label>
+
+          <input
+            id="organizationName"
+            type="text"
+            name="organizationName"
+            [(ngModel)]="newInventory.organizationName"
+            placeholder="Enter organization"
+            [disabled]="savingInventory"
+          />
+
+        </div>
+
+
+        <!-- Warehouse -->
+        <div class="form-group">
+
+          <label for="warehouseName">
+            Warehouse
+          </label>
+
+          <select
+            id="warehouseName"
+            name="warehouseName"
+            [(ngModel)]="newInventory.warehouseName"
+            [disabled]="savingInventory"
+          >
+
+            <option value="">
+              Select warehouse
+            </option>
+
+            @for (warehouse of warehouses; track warehouse) {
+              <option [value]="warehouse">
+                {{ warehouse }}
+              </option>
+            }
+
+          </select>
+
+        </div>
+
+
+        <!-- Quantity Row -->
+        <div class="form-row">
+
+          <div class="form-group">
+
+            <label for="quantity">
+              Quantity
+            </label>
+
+            <input
+              id="quantity"
+              type="number"
+              name="quantity"
+              [(ngModel)]="newInventory.quantity"
+              min="0"
+              [disabled]="savingInventory"
+            />
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="reservedQuantity">
+              Reserved Quantity
+            </label>
+
+            <input
+              id="reservedQuantity"
+              type="number"
+              name="reservedQuantity"
+              [(ngModel)]="newInventory.reservedQuantity"
+              min="0"
+              [disabled]="savingInventory"
+            />
+
+          </div>
+
+        </div>
+
+
+        <!-- Reorder + Price -->
+        <div class="form-row">
+
+          <div class="form-group">
+
+            <label for="reorderLevel">
+              Reorder Level
+            </label>
+
+            <input
+              id="reorderLevel"
+              type="number"
+              name="reorderLevel"
+              [(ngModel)]="newInventory.reorderLevel"
+              min="0"
+              [disabled]="savingInventory"
+            />
+
+          </div>
+
+
+          <div class="form-group">
+
+            <label for="unitPrice">
+              Unit Price
+            </label>
+
+            <input
+              id="unitPrice"
+              type="number"
+              name="unitPrice"
+              [(ngModel)]="newInventory.unitPrice"
+              min="0"
+              step="0.01"
+              [disabled]="savingInventory"
+            />
+
+          </div>
+
+        </div>
+
+
+        <!-- Actions -->
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeAddInventoryModal()"
+            [disabled]="savingInventory"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="save-button"
+            [disabled]="savingInventory"
+          >
+
+            @if (savingInventory) {
+              Saving...
+            } @else {
+              Add Inventory
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+}
+
+
+<!-- ================================================================
+     VIEW INVENTORY MODAL
+================================================================ -->
+
+@if (showViewInventoryModal) {
+
+  <div
+    class="modal-overlay"
+    (click)="closeViewInventoryModal()"
+  >
+
+    <div
+      class="modal-card view-inventory-modal"
+      (click)="$event.stopPropagation()"
+    >
+
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            INVENTORY DETAILS
+          </span>
+
+          <h3>
+            Inventory Record
+          </h3>
+
+          <p>
+            Review stock information and availability.
+          </p>
+
+        </div>
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeViewInventoryModal()"
+          [disabled]="loadingInventory"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      @if (loadingInventory) {
+
+        <div class="details-loading">
+          Loading inventory details...
+        </div>
+
+      }
+
+      @else if (viewInventoryError) {
+
+        <div class="modal-error">
+          {{ viewInventoryError }}
+        </div>
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeViewInventoryModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+      @else if (selectedInventory) {
+
+        <div class="inventory-details-content">
+
+          <!-- Product Summary -->
+          <div class="inventory-profile">
+
+            <div class="large-product-avatar">
+              {{ selectedInventory.productName?.charAt(0) || '?' }}
+            </div>
+
+            <div>
+
+              <h4>
+                {{ selectedInventory.productName }}
+              </h4>
+
+              <p>
+                SKU: {{ selectedInventory.sku }}
+              </p>
+
+              <span
+                class="status-badge"
+                [class.in-stock]="selectedInventory.status === 'IN_STOCK'"
+                [class.low-stock]="selectedInventory.status === 'LOW_STOCK'"
+                [class.out-of-stock]="selectedInventory.status === 'OUT_OF_STOCK'"
+                [class.overstocked]="selectedInventory.status === 'OVERSTOCKED'"
+              >
+                {{ selectedInventory.status?.replace('_', ' ') }}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <!-- Stock Overview -->
+          <div class="stock-overview">
+
+            <div class="stock-box">
+
+              <span>
+                Total Quantity
+              </span>
+
+              <strong>
+                {{ selectedInventory.quantity | number }}
+              </strong>
+
+            </div>
+
+
+            <div class="stock-box">
+
+              <span>
+                Reserved
+              </span>
+
+              <strong>
+                {{ selectedInventory.reservedQuantity ?? 0 | number }}
+              </strong>
+
+            </div>
+
+
+            <div class="stock-box">
+
+              <span>
+                Available
+              </span>
+
+              <strong>
+                {{
+                  selectedInventory.availableQuantity ??
+                  selectedInventory.quantity | number
+                }}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          <!-- Details -->
+          <div class="details-section">
+
+            <h4>
+              Inventory Information
+            </h4>
+
+            <div class="details-grid">
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Inventory ID
+                </span>
+
+                <strong>
+                  {{ selectedInventory.id }}
+                </strong>
+              </div>
+
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Product ID
+                </span>
+
+                <strong>
+                  {{ selectedInventory.productId }}
+                </strong>
+              </div>
+
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Organization
+                </span>
+
+                <strong>
+                  {{ selectedInventory.organizationName || 'Independent' }}
+                </strong>
+              </div>
+
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Warehouse
+                </span>
+
+                <strong>
+                  {{ selectedInventory.warehouseName || 'Not assigned' }}
+                </strong>
+              </div>
+
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Reorder Level
+                </span>
+
+                <strong>
+                  {{ selectedInventory.reorderLevel ?? 0 | number }}
+                </strong>
+              </div>
+
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Unit Price
+                </span>
+
+                <strong>
+                  KES
+                  {{ selectedInventory.unitPrice ?? 0 | number:'1.0-2' }}
+                </strong>
+              </div>
+
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Last Updated
+                </span>
+
+                <strong>
+                  {{ selectedInventory.lastUpdated || 'Not available' }}
+                </strong>
+              </div>
+
+
+              <div class="detail-item">
+                <span class="detail-label">
+                  Status
+                </span>
+
+                <strong>
+                  {{ selectedInventory.status?.replace('_', ' ') }}
+                </strong>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeViewInventoryModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+}

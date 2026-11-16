@@ -1,0 +1,699 @@
+<div class="organizations-page">
+
+  <!-- ============================= -->
+  <!-- PAGE HEADER -->
+  <!-- ============================= -->
+
+  <div class="page-header">
+
+    <div class="header-content">
+      <span class="eyebrow">{{ organizationType }} ORGANIZATIONS</span>
+
+      <h2>{{ organizationType === 'MANUFACTURER' ? 'Manufacturers' : 'Distributors' }}</h2>
+
+      <p>
+        Review {{ organizationType.toLowerCase() }} details and their teams.
+      </p>
+    </div>
+
+  </div>
+
+  <app-report-download
+    [title]="organizationType === 'MANUFACTURER' ? 'Manufacturers Report' : 'Distributors Report'"
+    [filename]="organizationType.toLowerCase() + '-report'"
+    [columns]="reportColumns"
+    [data]="reportData"
+  ></app-report-download>
+
+  @if (errorMessage) {
+    <div class="organization-delete-error" role="alert">
+      {{ errorMessage }}
+    </div>
+  }
+
+  <!-- ============================= -->
+  <!-- ORGANIZATION DIRECTORY -->
+  <!-- ============================= -->
+
+  <div class="organizations-card">
+
+    <!-- Table Header -->
+
+    <div class="table-header">
+
+      <div class="table-title">
+
+        <h3>
+          {{ organizationType === 'MANUFACTURER' ? 'Manufacturer Directory' : 'Distributor Directory' }}
+        </h3>
+
+        <p>
+          View {{ organizationType === 'MANUFACTURER' ? 'manufacturer' : 'distributor' }} organizations registered on the platform.
+        </p>
+
+      </div>
+
+
+      <div class="table-actions">
+
+        <div class="search-box">
+
+          <svg
+            class="search-icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="6.5"></circle>
+            <path d="M16 16l4 4"></path>
+          </svg>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="searchOrganizations()"
+            [placeholder]="'Search ' + organizationType.toLowerCase() + 's...'"
+          />
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- TABLE -->
+    <!-- ============================= -->
+
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>{{ organizationType === 'MANUFACTURER' ? 'Manufacturer Name' : 'Distributor Name' }}</th>
+            <th>Contact Person</th>
+            <th>Email</th>
+            <th>Location</th>
+            <th>Users</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          @if (loading) {
+
+            <tr>
+
+              <td
+                colspan="7"
+                class="empty-state"
+              >
+                <div class="empty-state-content">
+                  <div class="loading-spinner"></div>
+                  <span>Loading {{ organizationType.toLowerCase() }}s...</span>
+                </div>
+              </td>
+
+            </tr>
+
+          }
+
+          @else if (organizations.length === 0) {
+
+            <tr>
+
+              <td
+                colspan="7"
+                class="empty-state"
+              >
+                <div class="empty-state-content">
+                  <div class="empty-icon">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <rect x="4" y="4" width="16" height="16" rx="2"></rect>
+                      <path d="M8 9h8M8 13h5M8 17h3"></path>
+                    </svg>
+                  </div>
+
+                  <strong>No {{ organizationType.toLowerCase() }}s found</strong>
+                  <span>No organizations match your search.</span>
+                </div>
+              </td>
+
+            </tr>
+
+          }
+
+          @else {
+
+            @for (
+              organization of organizations;
+              track organization.id
+            ) {
+
+              <tr>
+
+                <!-- Organization -->
+
+                <td>
+
+                  <div class="organization-cell">
+
+                    <div class="organization-avatar">
+                      {{ organization.name.charAt(0) }}
+                    </div>
+
+                    <div class="organization-details">
+
+                      <strong>{{ organization.name }}</strong>
+
+                    </div>
+
+                  </div>
+
+                </td>
+
+
+                <td>{{ organization.contactName || 'Not provided' }}</td>
+
+                <td>{{ organization.email || 'Not provided' }}</td>
+
+
+                <!-- Location -->
+
+                <td>
+                  <span class="location-value">
+                    {{ organization.location || 'Not provided' }}
+                  </span>
+                </td>
+
+
+                <!-- Users -->
+
+                <td>
+
+                  <span class="count-value">
+                    {{ organization.userCount || 0 }}
+                  </span>
+
+                </td>
+
+
+                <!-- Status -->
+
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [class.active]="organization.status === 'ACTIVE'"
+                    [class.inactive]="organization.status === 'INACTIVE'"
+                    [class.pending]="organization.status === 'PENDING'"
+                    [class.suspended]="organization.status === 'SUSPENDED'"
+                  >
+
+                    @if (organization.status === 'ACTIVE') {
+                      <span class="status-dot"></span>
+                    }
+
+                    {{ organization.status || 'UNKNOWN' }}
+
+                  </span>
+
+                </td>
+
+
+                <!-- Action -->
+
+                
+<td>
+  <div class="organization-action-buttons">
+    <button
+      type="button"
+      class="view-button"
+      (click)="viewOrganization(organization.id)"
+    >
+      View
+    </button>
+
+    @if (
+      organization.type === 'MANUFACTURER' ||
+      organization.type === 'DISTRIBUTOR'
+    ) {
+      <button
+        type="button"
+        class="view-button"
+        (click)="addOrganizationUser(organization)"
+      >
+        Add User
+      </button>
+    }
+  </div>
+</td>
+
+
+              </tr>
+
+            }
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- ============================= -->
+    <!-- PAGINATION -->
+    <!-- ============================= -->
+
+    <div class="pagination">
+
+      <span>
+        Showing {{ organizations.length }}
+        of {{ totalElements }}
+        {{ organizationType === 'MANUFACTURER' ? 'manufacturers' : 'distributors' }}
+      </span>
+
+      <div class="pagination-controls">
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+          aria-label="Previous page"
+        >
+          ‹
+        </button>
+
+        <button
+          type="button"
+          class="page-button active"
+        >
+          {{ currentPage + 1 }}
+        </button>
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+          aria-label="Next page"
+        >
+          ›
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ====================================== -->
+<!-- VIEW ORGANIZATION MODAL -->
+<!-- ====================================== -->
+
+@if (showViewOrganizationModal) {
+
+  <div
+    class="modal-overlay"
+    (click)="closeViewOrganizationModal()"
+  >
+
+    <div
+      class="modal-card view-organization-modal"
+      (click)="$event.stopPropagation()"
+    >
+
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            ORGANIZATION DETAILS
+          </span>
+
+          <h3>
+            View Organization
+          </h3>
+
+          <p>
+            Review organization information and platform activity.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeViewOrganizationModal()"
+          [disabled]="loadingOrganization"
+          aria-label="Close"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      @if (loadingOrganization) {
+
+        <div class="organization-details-loading">
+
+          <div class="loading-spinner"></div>
+
+          <span>
+            Loading organization details...
+          </span>
+
+        </div>
+
+      }
+
+      @else if (viewOrganizationError) {
+
+        <div class="modal-error">
+          <span class="error-icon">!</span>
+          {{ viewOrganizationError }}
+        </div>
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeViewOrganizationModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+      @else if (selectedOrganization) {
+
+        <div class="organization-details-content">
+
+          <!-- Organization Summary -->
+
+          <div class="organization-profile-summary">
+
+            <div class="large-organization-avatar">
+              {{ selectedOrganization.name.charAt(0) }}
+            </div>
+
+            <div class="organization-summary-info">
+
+              <h4>
+                {{ selectedOrganization.name }}
+              </h4>
+
+              <p>
+                {{ selectedOrganization.email || 'No email provided' }}
+              </p>
+
+              <div class="profile-badges">
+
+                <span
+                  class="type-badge"
+                  [class.manufacturer]="selectedOrganization.type === 'MANUFACTURER'"
+                  [class.distributor]="selectedOrganization.type === 'DISTRIBUTOR'"
+                  [class.logistics]="selectedOrganization.type === 'LOGISTICS'"
+                  [class.retailer]="selectedOrganization.type === 'RETAILER'"
+                  [class.other]="selectedOrganization.type === 'OTHER'"
+                >
+                  {{ selectedOrganization.type }}
+                </span>
+
+                <span
+                  class="status-badge"
+                  [class.active]="selectedOrganization.status === 'ACTIVE'"
+                  [class.inactive]="selectedOrganization.status === 'INACTIVE'"
+                  [class.pending]="selectedOrganization.status === 'PENDING'"
+                  [class.suspended]="selectedOrganization.status === 'SUSPENDED'"
+                >
+
+                  @if (selectedOrganization.status === 'ACTIVE') {
+                    <span class="status-dot"></span>
+                  }
+
+                  {{ selectedOrganization.status }}
+
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <div class="details-section">
+            <h4>{{ organizationType === 'MANUFACTURER' ? 'Manufacturer Staff and Admins' : 'Distributor Staff and Admins' }}</h4>
+
+            @if (loadingOrganizationUsers) {
+              <p>Loading members...</p>
+            } @else if (organizationUsersError) {
+              <p class="member-error" role="alert">{{ organizationUsersError }}</p>
+            } @else if (organizationUsers.length === 0) {
+              <p>No members were returned for this organization.</p>
+            } @else {
+              @if (memberActionError) {
+                <p class="member-error" role="alert">{{ memberActionError }}</p>
+              }
+              <div class="organization-members">
+                @for (member of organizationUsers; track member.id) {
+                  <div class="organization-member">
+                    <div>
+                      <strong>{{ member.name }}</strong>
+                      <span>{{ member.email }}</span>
+                    </div>
+                    <span class="role-badge">{{ getMemberRoleLabel(member.role) }}</span>
+                    <div class="member-delivery-status">
+                      <span>OTP: {{ member.otpDeliveryStatus || 'Not reported' }}</span>
+                      <span>Activation link: {{ member.activationLinkDeliveryStatus || 'Not reported' }}</span>
+                      <span>Invitation: {{ member.invitationStatus || 'Not reported' }}</span>
+                    </div>
+                    @if (member.role !== 'SUPER_ADMIN' && member.role !== 'PLATFORM_ADMIN') {
+                      @if (member.status === 'ACTIVE') {
+                        <button
+                          type="button"
+                          class="delete-button"
+                          (click)="setMemberStatus(member, 'DEACTIVATED')"
+                          [disabled]="memberActionUserId === member.id"
+                        >
+                          {{ memberActionUserId === member.id ? 'Updating...' : 'Deactivate' }}
+                        </button>
+                      } @else {
+                        <button
+                          type="button"
+                          class="view-button"
+                          (click)="setMemberStatus(member, 'ACTIVE')"
+                          [disabled]="memberActionUserId === member.id"
+                        >
+                          {{ memberActionUserId === member.id ? 'Updating...' : 'Activate' }}
+                        </button>
+                      }
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+
+          <!-- Organization Information -->
+
+          <div class="details-section">
+
+            <h4>
+              Organization Information
+            </h4>
+
+            <div class="details-grid">
+
+              <div class="detail-item">
+                <span class="detail-label">Primary Contact</span>
+                <strong>{{ selectedOrganization.contactName || 'Not provided' }}</strong>
+              </div>
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Organization ID
+                </span>
+
+                <strong>
+                  {{ selectedOrganization.id }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Type
+                </span>
+
+                <strong>
+                  {{ selectedOrganization.type }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Location
+                </span>
+
+                <strong>
+                  {{ selectedOrganization.location || 'Not provided' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Phone
+                </span>
+
+                <strong>
+                  {{ selectedOrganization.phone || 'Not provided' }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Users
+                </span>
+
+                <strong>
+                  {{ selectedOrganization.userCount || 0 }}
+                </strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Products
+                </span>
+
+                <strong>
+                  {{ selectedOrganization.productCount || 0 }}
+                </strong>
+
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">Administrators</span>
+                <strong>{{ selectedOrganization.adminCount ?? 'Not provided by API' }}</strong>
+              </div>
+
+              <div class="detail-item">
+                <span class="detail-label">Staff</span>
+                <strong>{{ selectedOrganization.staffCount ?? 'Not provided by API' }}</strong>
+              </div>
+
+              @if (selectedOrganization.type === 'MANUFACTURER') {
+                <div class="detail-item">
+                  <span class="detail-label">Drivers</span>
+                  <strong>{{ selectedOrganization.driverCount ?? 'Not provided by API' }}</strong>
+                </div>
+
+                <div class="detail-item">
+                  <span class="detail-label">Available Products</span>
+                  <strong>{{ selectedOrganization.availableProductCount ?? 'Not provided by API' }}</strong>
+                </div>
+
+                <div class="detail-item">
+                  <span class="detail-label">Inventory Units</span>
+                  <strong>{{ selectedOrganization.inventoryUnits ?? selectedOrganization.inventoryCount ?? 'Not provided by API' }}</strong>
+                </div>
+              } @else {
+                <div class="detail-item">
+                  <span class="detail-label">Drivers</span>
+                  <strong>{{ selectedOrganization.driverCount ?? 'Not provided by API' }}</strong>
+                </div>
+
+                <div class="detail-item">
+                  <span class="detail-label">Trucks</span>
+                  <strong>{{ selectedOrganization.truckCount ?? 'Not provided by API' }}</strong>
+                </div>
+
+                <div class="detail-item">
+                  <span class="detail-label">Available Trucks</span>
+                  <strong>{{ selectedOrganization.availableTruckCount ?? 'Not provided by API' }}</strong>
+                </div>
+              }
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Status
+                </span>
+
+                <strong>{{ selectedOrganization.status || 'UNKNOWN' }}</strong>
+
+              </div>
+
+
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Created
+                </span>
+
+                <strong>
+                  {{ selectedOrganization.createdAt || 'Not available' }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeViewOrganizationModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+}

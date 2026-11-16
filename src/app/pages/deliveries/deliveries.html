@@ -1,0 +1,851 @@
+<div class="deliveries-page">
+
+  <!-- ==========================================
+       PAGE HEADER
+       ========================================== -->
+
+  <div class="page-header">
+
+    <div>
+      <span class="eyebrow">
+        DELIVERY MANAGEMENT
+      </span>
+
+      <h2>
+        Deliveries
+      </h2>
+
+      <p>
+        Monitor and manage deliveries across the supply chain.
+      </p>
+    </div>
+
+  </div>
+
+
+  <!-- ==========================================
+       KPI CARDS
+       ========================================== -->
+
+  <div class="stats-grid">
+
+    <div class="stat-card blue">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          D
+        </div>
+
+        <span class="trend">
+          Platform
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Total Deliveries
+      </span>
+
+      <strong>
+       {{ getTotalDeliveries() }}
+      </strong>
+
+      <span class="stat-note">
+        All registered deliveries
+      </span>
+
+    </div>
+
+
+    <div class="stat-card green">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          ✓
+        </div>
+
+        <span class="trend">
+          Active
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Active Deliveries
+      </span>
+
+      <strong>
+        {{ getActiveDeliveries() }}
+      </strong>
+
+      <span class="stat-note">
+        Currently in progress
+      </span>
+
+    </div>
+
+
+    <div class="stat-card orange">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          P
+        </div>
+
+        <span class="trend neutral">
+          Attention
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Pending Deliveries
+      </span>
+
+      <strong>
+        {{ getPendingDeliveries() }}
+      </strong>
+
+      <span class="stat-note">
+        Awaiting driver assignment
+      </span>
+
+    </div>
+
+
+    <div class="stat-card purple">
+
+      <div class="stat-top">
+
+        <div class="stat-icon">
+          ✓
+        </div>
+
+        <span class="trend">
+          Completed
+        </span>
+
+      </div>
+
+      <span class="stat-label">
+        Delivered
+      </span>
+
+      <strong>
+        {{ getCompletedDeliveries() }}
+      </strong>
+
+      <span class="stat-note">
+        Successfully completed
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==========================================
+       DELIVERIES CARD
+       ========================================== -->
+
+  <div class="deliveries-card">
+
+    <!-- Table Header -->
+
+    <div class="table-header">
+
+      <div>
+
+        <h3>
+          All Deliveries
+        </h3>
+
+        <p>
+          Track and manage delivery operations.
+        </p>
+
+      </div>
+
+
+      <div class="table-actions">
+
+        <div class="search-box">
+
+          <span>
+            ⌕
+          </span>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="searchDeliveries()"
+            placeholder="Search deliveries..."
+          />
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ==========================================
+         TABLE
+         ========================================== -->
+
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+
+          <tr>
+
+            <th>
+              Delivery
+            </th>
+
+            <th>
+              Order
+            </th>
+
+            <th>
+              Customer
+            </th>
+
+            <th>
+              Driver
+            </th>
+
+            <th>
+              Vehicle
+            </th>
+
+            <th>
+              Destination
+            </th>
+
+            <th>
+              Status
+            </th>
+
+            <th>
+              ETA
+            </th>
+
+            <th>
+              Action
+            </th>
+
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          @if (loading) {
+
+            <tr>
+
+              <td
+                colspan="9"
+                class="empty-state"
+              >
+                Loading deliveries...
+              </td>
+
+            </tr>
+
+          }
+
+          @else if (deliveries.length === 0) {
+
+            <tr>
+
+              <td
+                colspan="9"
+                class="empty-state"
+              >
+                No deliveries found.
+              </td>
+
+            </tr>
+
+          }
+
+          @else {
+
+            @for (
+              delivery of deliveries;
+              track delivery.id
+            ) {
+
+              <tr>
+
+                <!-- Delivery -->
+
+                <td>
+
+                  <div class="delivery-cell">
+
+                    <div class="delivery-avatar">
+                      {{ delivery.id.substring(4, 5) }}
+                    </div>
+
+                    <div class="delivery-details">
+
+                      <strong>
+                        {{ delivery.id }}
+                      </strong>
+
+                      <span>
+                        Delivery record
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </td>
+
+
+                <!-- Order -->
+
+                <td>
+
+                  <span class="order-reference">
+                    {{ delivery.orderId }}
+                  </span>
+
+                </td>
+
+
+                <!-- Customer -->
+
+                <td>
+
+                  <div class="customer-cell">
+
+                    <strong>
+                      {{ delivery.customerName }}
+                    </strong>
+
+                    <span>
+                      {{ delivery.customerPhone || 'No phone' }}
+                    </span>
+
+                  </div>
+
+                </td>
+
+
+                <!-- Driver -->
+
+                <td>
+
+                  @if (delivery.driverName) {
+
+                    <div class="driver-cell">
+
+                      <strong>
+                        {{ delivery.driverName }}
+                      </strong>
+
+                      <span>
+                        {{ delivery.driverId }}
+                      </span>
+
+                    </div>
+
+                  }
+
+                  @else {
+
+                    <span class="unassigned">
+                      Unassigned
+                    </span>
+
+                  }
+
+                </td>
+
+
+                <!-- Vehicle -->
+
+                <td>
+
+                  @if (delivery.vehicleNumber) {
+
+                    <span class="vehicle-number">
+                      {{ delivery.vehicleNumber }}
+                    </span>
+
+                  }
+
+                  @else {
+
+                    <span class="not-available">
+                      —
+                    </span>
+
+                  }
+
+                </td>
+
+
+                <!-- Destination -->
+
+                <td>
+
+                  <div class="destination-cell">
+
+                    <span>
+                      {{ delivery.deliveryAddress }}
+                    </span>
+
+                  </div>
+
+                </td>
+
+
+                <!-- Status -->
+
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [class.pending]="delivery.status === 'PENDING'"
+                    [class.assigned]="delivery.status === 'ASSIGNED'"
+                    [class.picked-up]="delivery.status === 'PICKED_UP'"
+                    [class.in-transit]="delivery.status === 'IN_TRANSIT'"
+                    [class.delivered]="delivery.status === 'DELIVERED'"
+                    [class.failed]="delivery.status === 'FAILED'"
+                    [class.cancelled]="delivery.status === 'CANCELLED'"
+                  >
+                    {{ delivery.status.replace('_', ' ') }}
+                  </span>
+
+                </td>
+
+
+                <!-- ETA -->
+
+                <td>
+
+                  <span class="eta">
+                    {{ delivery.estimatedDelivery || 'Not available' }}
+                  </span>
+
+                </td>
+
+
+                <!-- Action -->
+
+                <td>
+
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="viewDelivery(delivery.id)"
+                  >
+                    View
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- ==========================================
+         PAGINATION
+         ========================================== -->
+
+    <div class="pagination">
+
+      <span>
+        Showing {{ deliveries.length }}
+        of {{ totalElements }} deliveries
+      </span>
+
+
+      <div>
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+        >
+          ‹
+        </button>
+
+
+        <button
+          type="button"
+          class="page-button active"
+        >
+          {{ currentPage + 1 }}
+        </button>
+
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+        >
+          ›
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ==========================================
+     VIEW DELIVERY MODAL
+     ========================================== -->
+
+@if (showViewDeliveryModal) {
+
+  <div
+    class="modal-overlay"
+    (click)="closeViewDeliveryModal()"
+  >
+
+    <div
+      class="modal-card"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- Modal Header -->
+
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            DELIVERY DETAILS
+          </span>
+
+          <h3>
+            {{ selectedDelivery?.id || 'Delivery' }}
+          </h3>
+
+          <p>
+            Review delivery information and tracking status.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeViewDeliveryModal()"
+          [disabled]="loadingDelivery"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      @if (loadingDelivery) {
+
+        <div class="details-loading">
+          Loading delivery details...
+        </div>
+
+      }
+
+      @else if (viewDeliveryError) {
+
+        <div class="modal-error">
+          {{ viewDeliveryError }}
+        </div>
+
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeViewDeliveryModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+      @else if (selectedDelivery) {
+
+        <!-- Delivery Summary -->
+
+        <div class="delivery-profile">
+
+          <div class="large-delivery-avatar">
+            D
+          </div>
+
+
+          <div>
+
+            <h4>
+              {{ selectedDelivery.id }}
+            </h4>
+
+            <p>
+              Order {{ selectedDelivery.orderId }}
+            </p>
+
+
+            <span
+              class="status-badge"
+              [class.pending]="selectedDelivery.status === 'PENDING'"
+              [class.assigned]="selectedDelivery.status === 'ASSIGNED'"
+              [class.picked-up]="selectedDelivery.status === 'PICKED_UP'"
+              [class.in-transit]="selectedDelivery.status === 'IN_TRANSIT'"
+              [class.delivered]="selectedDelivery.status === 'DELIVERED'"
+              [class.failed]="selectedDelivery.status === 'FAILED'"
+              [class.cancelled]="selectedDelivery.status === 'CANCELLED'"
+            >
+              {{ selectedDelivery.status.replace('_', ' ') }}
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <!-- Tracking Summary -->
+
+        <div class="tracking-summary">
+
+          <div class="tracking-box">
+
+            <span>
+              Current Location
+            </span>
+
+            <strong>
+              {{ selectedDelivery.currentLocation || 'Not available' }}
+            </strong>
+
+          </div>
+
+
+          <div class="tracking-box">
+
+            <span>
+              Tracking Status
+            </span>
+
+            <strong>
+              {{ selectedDelivery.trackingStatus || 'Not available' }}
+            </strong>
+
+          </div>
+
+
+          <div class="tracking-box">
+
+            <span>
+              Estimated Delivery
+            </span>
+
+            <strong>
+              {{ selectedDelivery.estimatedDelivery || 'Not available' }}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <!-- Delivery Information -->
+
+        <div class="details-section">
+
+          <h4>
+            Delivery Information
+          </h4>
+
+
+          <div class="details-grid">
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Customer
+              </span>
+
+              <strong>
+                {{ selectedDelivery.customerName }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Phone
+              </span>
+
+              <strong>
+                {{ selectedDelivery.customerPhone || 'Not provided' }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Order
+              </span>
+
+              <strong>
+                {{ selectedDelivery.orderId }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Driver
+              </span>
+
+              <strong>
+                {{ selectedDelivery.driverName || 'Unassigned' }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Driver ID
+              </span>
+
+              <strong>
+                {{ selectedDelivery.driverId || 'Not assigned' }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Vehicle
+              </span>
+
+              <strong>
+                {{ selectedDelivery.vehicleNumber || 'Not assigned' }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Destination
+              </span>
+
+              <strong>
+                {{ selectedDelivery.deliveryAddress }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Current Location
+              </span>
+
+              <strong>
+                {{ selectedDelivery.currentLocation || 'Not available' }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Estimated Delivery
+              </span>
+
+              <strong>
+                {{ selectedDelivery.estimatedDelivery || 'Not available' }}
+              </strong>
+
+            </div>
+
+
+            <div class="detail-item">
+
+              <span class="detail-label">
+                Delivered At
+              </span>
+
+              <strong>
+                {{ selectedDelivery.deliveredAt || 'Not delivered yet' }}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        <!-- Modal Footer -->
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeViewDeliveryModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+}

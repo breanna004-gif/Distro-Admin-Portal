@@ -1,0 +1,324 @@
+
+<div class="fleet-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">LOGISTICS OPERATIONS / FLEET</p>
+      <h1>Fleet Management</h1>
+      <p class="subtitle">Manage vehicles, capacity, ownership, and driver assignments.</p>
+    </div>
+    <button class="primary-button" type="button" (click)="openRegistration()">
+      <span class="plus">+</span> Register vehicle
+    </button>
+  </header>
+
+  <div *ngIf="successMessage" class="notice success" role="status">
+    {{ successMessage }}
+    <button type="button" (click)="clearMessages()" aria-label="Dismiss">×</button>
+  </div>
+  <div *ngIf="errorMessage" class="notice error" role="alert">
+    {{ errorMessage }}
+    <button type="button" (click)="clearMessages()" aria-label="Dismiss">×</button>
+  </div>
+
+  <section class="stats-grid">
+    <article class="stat-card">
+      <span class="stat-label">Total vehicles</span>
+      <div class="stat-value">{{ totalVehicles }}</div>
+      <p>Registered fleet vehicles</p>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">Available</span>
+      <div class="stat-value">{{ availableVehicles }}</div>
+      <p>Ready for trip assignment</p>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">Assigned / in transit</span>
+      <div class="stat-value">{{ assignedVehicles }}</div>
+      <p>Currently allocated</p>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">Maintenance</span>
+      <div class="stat-value">{{ maintenanceVehicles }}</div>
+      <p>Unavailable for dispatch</p>
+    </article>
+  </section>
+
+  <section class="directory-card">
+    <div class="directory-heading">
+      <div>
+        <h2>Vehicle directory</h2>
+        <p>Search vehicles and review their capacity and operational status.</p>
+      </div>
+      <span class="record-count">{{ filteredVehicles.length }} vehicles</span>
+    </div>
+
+    <div class="toolbar">
+      <label class="search-box">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" [(ngModel)]="searchTerm"
+          placeholder="Search registration, make, owner or driver..."
+          aria-label="Search vehicles" />
+      </label>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Vehicle</th>
+            <th>Owner organization</th>
+            <th>Capacity</th>
+            <th>Assigned driver</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let vehicle of filteredVehicles; trackBy: trackByVehicleId">
+            <td>
+              <div class="vehicle-cell">
+                <div class="vehicle-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <path d="M3 6h11v11H3z"></path>
+                    <path d="M14 10h4l3 3v4h-7z"></path>
+                    <circle cx="7.5" cy="19" r="2"></circle>
+                    <circle cx="18" cy="19" r="2"></circle>
+                  </svg>
+                </div>
+                <div class="vehicle-info">
+                  <strong>{{ vehicle.registrationNumber }}</strong>
+                  <span>{{ vehicle.make }} {{ vehicle.model }} · {{ vehicle.year }}</span>
+                  <small>{{ typeLabel(vehicle.type) }}</small>
+                </div>
+              </div>
+            </td>
+            <td>{{ vehicle.ownerOrganizationName }}</td>
+            <td>
+              <strong class="capacity-value">{{ vehicle.maxWeightKg | number }} kg</strong>
+              <span class="capacity-volume">{{ vehicle.cargoVolumeM3 }} m³</span>
+            </td>
+            <td>
+              <span *ngIf="vehicle.assignedDriverName; else noDriver">
+                {{ vehicle.assignedDriverName }}
+              </span>
+              <ng-template #noDriver>
+                <span class="muted">Unassigned</span>
+              </ng-template>
+            </td>
+            <td>
+              <span class="status-pill" [ngClass]="'status-' + vehicle.status.toLowerCase()">
+                <span class="status-dot"></span>
+                {{ statusLabel(vehicle.status) }}
+              </span>
+            </td>
+            <td>
+              <button class="text-button" type="button" (click)="viewVehicle(vehicle)">
+                View details
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredVehicles.length === 0">
+            <td colspan="6">
+              <div class="empty-state">
+                <strong>No vehicles found</strong>
+                <p>Try another search or register a vehicle.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<div class="overlay" *ngIf="showForm" (click)="closeForm()">
+  <section class="side-panel" role="dialog" aria-modal="true"
+    aria-labelledby="register-vehicle-title" (click)="$event.stopPropagation()">
+    <header class="panel-header">
+      <div>
+        <p class="eyebrow">FLEET REGISTRATION</p>
+        <h2 id="register-vehicle-title">Register vehicle</h2>
+        <p>Add vehicle specifications and ownership information.</p>
+      </div>
+      <button class="close-button" type="button" (click)="closeForm()"
+        aria-label="Close">×</button>
+    </header>
+
+    <form #vehicleForm="ngForm" (ngSubmit)="registerVehicle()">
+      <section class="form-section">
+        <h3>Vehicle details</h3>
+        <label class="form-field">
+          <span>Registration number *</span>
+          <input name="registrationNumber" [(ngModel)]="form.registrationNumber"
+            required maxlength="20" placeholder="e.g. KDA 214A" />
+        </label>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Make *</span>
+            <input name="make" [(ngModel)]="form.make" required placeholder="e.g. Isuzu" />
+          </label>
+          <label class="form-field">
+            <span>Model *</span>
+            <input name="model" [(ngModel)]="form.model" required placeholder="e.g. FVR" />
+          </label>
+        </div>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Manufacture year *</span>
+            <input type="number" name="year" [(ngModel)]="form.year"
+              required min="1980" [max]="2026" />
+          </label>
+          <label class="form-field">
+            <span>Vehicle type *</span>
+            <select name="type" [(ngModel)]="form.type" required>
+              <option *ngFor="let type of vehicleTypes" [value]="type">
+                {{ typeLabel(type) }}
+              </option>
+            </select>
+          </label>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h3>Ownership and assignment</h3>
+        <label class="form-field">
+          <span>Owner organization *</span>
+          <select name="ownerOrganizationId" [(ngModel)]="form.ownerOrganizationId"
+            required (ngModelChange)="onOrganizationChange()">
+            <option value="" disabled>Select organization</option>
+            <option *ngFor="let organization of organizations" [value]="organization.id">
+              {{ organization.name }}
+            </option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span>Assign approved driver</span>
+          <select name="assignedDriverId" [(ngModel)]="form.assignedDriverId">
+            <option value="">No driver assigned</option>
+            <option *ngFor="let driver of availableDrivers" [value]="driver.id">
+              {{ driver.fullName }}
+            </option>
+          </select>
+          <small class="field-help">Only approved drivers appear here.</small>
+        </label>
+      </section>
+
+      <section class="form-section">
+        <h3>Cargo capacity</h3>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Maximum weight (kg) *</span>
+            <input type="number" name="maxWeightKg" [(ngModel)]="form.maxWeightKg"
+              required min="1" />
+          </label>
+          <label class="form-field">
+            <span>Cargo volume (m³) *</span>
+            <input type="number" name="cargoVolumeM3" [(ngModel)]="form.cargoVolumeM3"
+              required min="0.1" step="0.1" />
+          </label>
+        </div>
+
+        <div class="cargo-options">
+          <span class="field-heading">Supported cargo categories *</span>
+          <label *ngFor="let category of cargoOptions" class="cargo-option">
+            <input type="checkbox"
+              [checked]="form.cargoCategories.includes(category)"
+              (change)="toggleCargo(category, $any($event.target).checked)" />
+            {{ cargoLabel(category) }}
+          </label>
+        </div>
+
+        <label class="toggle-field">
+          <input type="checkbox" name="hasCompartments" [(ngModel)]="form.hasCompartments" />
+          <span>Vehicle has separate cargo compartments</span>
+        </label>
+        <label class="toggle-field">
+          <input type="checkbox" name="refrigerated" [(ngModel)]="form.refrigerated" />
+          <span>Refrigerated vehicle</span>
+        </label>
+      </section>
+
+      <section class="form-section">
+        <h3>Maintenance and availability</h3>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Last service date</span>
+            <input type="date" name="lastServiceDate" [(ngModel)]="form.lastServiceDate" />
+          </label>
+          <label class="form-field">
+            <span>Next service date</span>
+            <input type="date" name="nextServiceDate" [(ngModel)]="form.nextServiceDate" />
+          </label>
+        </div>
+        <label class="form-field">
+          <span>Notes</span>
+          <textarea name="notes" [(ngModel)]="form.notes" rows="3"
+            placeholder="Optional vehicle notes"></textarea>
+        </label>
+      </section>
+
+      <div class="panel-actions">
+        <button class="secondary-button" type="button" (click)="closeForm()">Cancel</button>
+        <button class="primary-button" type="submit" [disabled]="vehicleForm.invalid">
+          Register vehicle
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<div class="overlay" *ngIf="selectedVehicle as vehicle" (click)="closeDetails()">
+  <section class="side-panel" role="dialog" aria-modal="true"
+    aria-labelledby="vehicle-details-title" (click)="$event.stopPropagation()">
+    <header class="panel-header">
+      <div>
+        <p class="eyebrow">{{ vehicle.id }}</p>
+        <h2 id="vehicle-details-title">{{ vehicle.registrationNumber }}</h2>
+        <p>{{ vehicle.make }} {{ vehicle.model }} · {{ vehicle.year }}</p>
+        <span class="status-pill" [ngClass]="'status-' + vehicle.status.toLowerCase()">
+          <span class="status-dot"></span>{{ statusLabel(vehicle.status) }}
+        </span>
+      </div>
+      <button class="close-button" type="button" (click)="closeDetails()"
+        aria-label="Close">×</button>
+    </header>
+
+    <section class="detail-section">
+      <h3>Vehicle specifications</h3>
+      <div class="detail-row"><span>Type</span><strong>{{ typeLabel(vehicle.type) }}</strong></div>
+      <div class="detail-row"><span>Maximum weight</span><strong>{{ vehicle.maxWeightKg | number }} kg</strong></div>
+      <div class="detail-row"><span>Cargo volume</span><strong>{{ vehicle.cargoVolumeM3 }} m³</strong></div>
+      <div class="detail-row"><span>Cargo categories</span><strong>{{ vehicle.cargoCategories.join(', ') }}</strong></div>
+      <div class="detail-row"><span>Compartments</span><strong>{{ vehicle.hasCompartments ? 'Yes' : 'No' }}</strong></div>
+      <div class="detail-row"><span>Refrigerated</span><strong>{{ vehicle.refrigerated ? 'Yes' : 'No' }}</strong></div>
+    </section>
+
+    <section class="detail-section">
+      <h3>Ownership and driver</h3>
+      <div class="detail-row"><span>Owner organization</span><strong>{{ vehicle.ownerOrganizationName }}</strong></div>
+      <div class="detail-row"><span>Assigned driver</span><strong>{{ vehicle.assignedDriverName || 'Unassigned' }}</strong></div>
+    </section>
+
+    <section class="detail-section">
+      <h3>Maintenance</h3>
+      <div class="detail-row"><span>Last service</span><strong>{{ vehicle.lastServiceDate ? (vehicle.lastServiceDate | date:'dd MMM yyyy') : 'Not recorded' }}</strong></div>
+      <div class="detail-row"><span>Next service</span><strong>{{ vehicle.nextServiceDate ? (vehicle.nextServiceDate | date:'dd MMM yyyy') : 'Not scheduled' }}</strong></div>
+      <p *ngIf="vehicle.notes" class="notes-copy">{{ vehicle.notes }}</p>
+    </section>
+
+    <section class="detail-section">
+      <h3>Change vehicle status</h3>
+      <div class="status-actions">
+        <button *ngIf="vehicle.status !== 'AVAILABLE'" class="secondary-button"
+          type="button" (click)="changeStatus(vehicle, 'AVAILABLE')">Available</button>
+        <button *ngIf="vehicle.status !== 'MAINTENANCE'" class="secondary-button"
+          type="button" (click)="changeStatus(vehicle, 'MAINTENANCE')">Maintenance</button>
+        <button *ngIf="vehicle.status !== 'INACTIVE'" class="danger-button"
+          type="button" (click)="changeStatus(vehicle, 'INACTIVE')">Deactivate</button>
+      </div>
+      <p class="field-help">Trip assignment and dispatch will be managed by the logistics workflow.</p>
+    </section>
+  </section>
+</div>

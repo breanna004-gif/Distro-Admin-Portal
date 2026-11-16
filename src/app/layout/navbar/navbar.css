@@ -1,0 +1,453 @@
+.navbar {
+  height: 80px;
+  min-height: 80px;
+  background: var(--card-background);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 30px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+  transition:
+    background 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+/* =========================================================
+   PAGE HEADING
+   ========================================================= */
+
+.page-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.heading-icon {
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.heading-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.page-heading h1 {
+  margin: 0;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.35px;
+  color: var(--text-primary);
+}
+
+.page-heading p {
+  margin: 4px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+/* =========================================================
+   ACTIONS
+   ========================================================= */
+
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* =========================================================
+   ICON BUTTONS
+   ========================================================= */
+
+.icon-button {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 10px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.icon-button:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  border-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  transform: translateY(-1px);
+}
+
+.icon-button:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.icon-button svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* =========================================================
+   NOTIFICATIONS
+   ========================================================= */
+
+.notification-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: 2px solid var(--card-background);
+  box-sizing: content-box;
+}
+
+/* =========================================================
+   DIVIDER
+   ========================================================= */
+
+.navbar-divider {
+  width: 1px;
+  height: 34px;
+  background: var(--border);
+  margin: 0 5px;
+}
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+.profile-wrapper {
+  position: relative;
+}
+
+.profile {
+  min-width: 225px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 10px 5px 5px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.profile:hover,
+.profile.open {
+  background: var(--soft-background);
+  border-color: var(--border);
+}
+
+.profile-avatar {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  border-radius: 50%;
+  background: linear-gradient(
+    135deg,
+    var(--primary-dark),
+    var(--primary)
+  );
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  box-shadow: 0 3px 10px color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-info strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 650;
+  color: var(--text-primary);
+}
+
+.profile-info span {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.profile-chevron {
+  width: 15px;
+  height: 15px;
+  fill: none;
+  stroke: var(--text-muted);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition:
+    transform 0.2s ease,
+    stroke 0.2s ease;
+}
+
+.profile:hover .profile-chevron,
+.profile.open .profile-chevron {
+  stroke: var(--primary);
+}
+
+.profile-chevron.rotated {
+  transform: rotate(180deg);
+}
+
+/* =========================================================
+   PROFILE MENU
+   ========================================================= */
+
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 250px;
+  padding: 8px;
+  background: var(--card-background);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-lg);
+  z-index: 200;
+  animation: profileMenuIn 0.16s ease-out;
+}
+
+@keyframes profileMenuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.profile-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 8px;
+}
+
+.menu-avatar {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary-light);
+  color: var(--primary);
+  border: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.profile-menu-header strong {
+  display: block;
+  font-size: 12px;
+  color: var(--text-primary);
+}
+
+.profile-menu-header span {
+  display: block;
+  margin-top: 2px;
+  font-size: 10px;
+  color: var(--text-secondary);
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 0;
+}
+
+/* =========================================================
+   MENU ITEMS
+   ========================================================= */
+
+.menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+  text-decoration: none;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.menu-item:hover {
+  background: var(--soft-background);
+  color: var(--primary);
+}
+
+.menu-item:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: -2px;
+}
+
+.menu-item svg {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logout-item:hover {
+  background: var(--danger-background);
+  color: var(--danger);
+}
+
+/* =========================================================
+   DARK MODE REFINEMENTS
+   ========================================================= */
+
+:host-context(.dark-mode) .navbar {
+  box-shadow: 0 1px 10px rgba(0, 0, 0, 0.18);
+}
+
+:host-context(.dark-mode) .heading-icon {
+  background: rgba(96, 165, 250, 0.10);
+  border-color: rgba(96, 165, 250, 0.16);
+}
+
+:host-context(.dark-mode) .icon-button:hover {
+  background: rgba(96, 165, 250, 0.10);
+  border-color: rgba(96, 165, 250, 0.16);
+}
+
+:host-context(.dark-mode) .profile:hover,
+:host-context(.dark-mode) .profile.open {
+  background: var(--soft-background);
+  border-color: var(--border);
+}
+
+:host-context(.dark-mode) .profile-avatar {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+}
+
+:host-context(.dark-mode) .profile-menu {
+  box-shadow:
+    0 18px 45px rgba(0, 0, 0, 0.35),
+    0 4px 12px rgba(0, 0, 0, 0.20);
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 700px) {
+  .navbar {
+    height: 70px;
+    min-height: 70px;
+    padding: 0 18px;
+  }
+
+  .heading-icon {
+    display: none;
+  }
+
+  .page-heading h1 {
+    font-size: 18px;
+  }
+
+  .page-heading p {
+    display: none;
+  }
+
+  .profile {
+    min-width: auto;
+    padding-right: 4px;
+  }
+
+  .profile-info,
+  .profile-chevron {
+    display: none;
+  }
+
+  .navbar-actions {
+    gap: 5px;
+  }
+
+  .navbar-divider {
+    display: none;
+  }
+
+  .profile-menu {
+    right: 0;
+    width: 230px;
+  }
+}
+
+@media (max-width: 430px) {
+  .navbar {
+    padding: 0 12px;
+  }
+
+  .page-heading h1 {
+    font-size: 16px;
+  }
+
+  .icon-button {
+    width: 36px;
+    height: 36px;
+  }
+
+  .profile-avatar {
+    width: 34px;
+    height: 34px;
+    flex-basis: 34px;
+  }
+}

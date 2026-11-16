@@ -1,0 +1,304 @@
+<div class="settings-page">
+
+  <!-- Page Header -->
+  <div class="page-header">
+
+    <div>
+      <h1>Settings</h1>
+
+      <p>
+        Manage system configuration and platform preferences
+      </p>
+    </div>
+
+    <div class="header-actions">
+
+      <button
+        class="secondary-button"
+        type="button"
+        (click)="resetSettings()"
+      >
+        Reset
+      </button>
+
+      <button
+        class="primary-button"
+        type="button"
+        (click)="saveSettings()"
+      >
+        Save Changes
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- General Settings -->
+  <section class="settings-section">
+
+    <div class="section-header">
+
+      <div>
+        <h2>General Settings</h2>
+
+        <p>
+          Configure the basic information used across the platform.
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="settings-grid">
+
+      <div class="form-group">
+
+        <label for="platformName">
+          Platform Name
+        </label>
+
+        <input
+          id="platformName"
+          type="text"
+          [(ngModel)]="platformName"
+          placeholder="Enter platform name"
+        />
+
+        <span class="help-text">
+          The name displayed throughout the administration portal.
+        </span>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="currency">
+          Default Currency
+        </label>
+
+        <select
+          id="currency"
+          [(ngModel)]="currency"
+        >
+          <option value="KES">
+            KES - Kenyan Shilling
+          </option>
+
+          <option value="USD">
+            USD - US Dollar
+          </option>
+
+          <option value="EUR">
+            EUR - Euro
+          </option>
+
+          <option value="GBP">
+            GBP - British Pound
+          </option>
+        </select>
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="timezone">
+          Timezone
+        </label>
+
+        <select
+          id="timezone"
+          [(ngModel)]="timezone"
+        >
+          <option value="Africa/Nairobi">
+            Africa/Nairobi
+          </option>
+
+          <option value="Africa/Cairo">
+            Africa/Cairo
+          </option>
+
+          <option value="Europe/London">
+            Europe/London
+          </option>
+
+          <option value="Europe/Berlin">
+            Europe/Berlin
+          </option>
+
+          <option value="America/New_York">
+            America/New_York
+          </option>
+        </select>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- Inventory Settings -->
+  <section class="settings-section">
+
+    <div class="section-header">
+
+      <div>
+        <h2>Inventory Settings</h2>
+
+        <p>
+          Configure inventory monitoring and stock alerts.
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="settings-grid">
+
+      <div class="form-group">
+
+        <label for="lowStockThreshold">
+          Low Stock Threshold
+        </label>
+
+        <input
+          id="lowStockThreshold"
+          type="number"
+          min="0"
+          [(ngModel)]="lowStockThreshold"
+        />
+
+        <span class="help-text">
+          Products at or below this quantity will be flagged as low stock.
+        </span>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- Notification Settings -->
+  <section class="settings-section">
+
+    <div class="section-header">
+
+      <div>
+        <h2>Notification Settings</h2>
+
+        <p>
+          Control which system notifications are enabled.
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="notification-settings">
+
+      <!-- Email Notifications -->
+      <div class="setting-row">
+
+        <div class="setting-info">
+
+          <strong>
+            Email Notifications
+          </strong>
+
+          <span>
+            Receive important system alerts and updates through email.
+          </span>
+
+        </div>
+
+        <label class="toggle">
+
+          <input
+            type="checkbox"
+            [(ngModel)]="emailNotifications"
+          />
+
+          <span class="toggle-slider"></span>
+
+        </label>
+
+      </div>
+
+
+      <!-- System Notifications -->
+      <div class="setting-row">
+
+        <div class="setting-info">
+
+          <strong>
+            System Notifications
+          </strong>
+
+          <span>
+            Display notifications and alerts inside the admin portal.
+          </span>
+
+        </div>
+
+        <label class="toggle">
+
+          <input
+            type="checkbox"
+            [(ngModel)]="systemNotifications"
+          />
+
+          <span class="toggle-slider"></span>
+
+        </label>
+
+      </div>
+
+    </div>
+
+  </section>
+
+
+  <!-- Security -->
+  <section class="settings-section">
+
+    <div class="section-header">
+
+      <div>
+        <h2>Security</h2>
+
+        <p>
+          Manage administrative security preferences.
+        </p>
+      </div>
+
+    </div>
+
+
+    <div class="security-card">
+
+      <div>
+
+        <strong>
+          Administrator Authentication
+        </strong>
+
+        <p>
+          Authentication and access control are managed through the platform
+          authentication service.
+        </p>
+
+      </div>
+
+      <span class="status-badge">
+        Managed by system
+      </span>
+
+    </div>
+
+  </section>
+
+</div>

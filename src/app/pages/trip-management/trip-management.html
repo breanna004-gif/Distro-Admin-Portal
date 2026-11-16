@@ -1,0 +1,520 @@
+<div class="trips-page">
+  <header class="page-header">
+    <div>
+      <div class="breadcrumb">Logistics Operations / Trip Management</div>
+      <h1>Trip Management</h1>
+      <p class="page-description">
+        Plan trips, coordinate vehicles and drivers, and monitor shipment
+        pickups and deliveries across the logistics network.
+      </p>
+    </div>
+
+    <button type="button" class="primary-button" (click)="openCreateForm()">
+      <span class="button-plus">+</span>
+      Create trip
+    </button>
+  </header>
+
+  <p class="feedback-message" *ngIf="feedbackMessage" role="alert">
+    {{ feedbackMessage }}
+  </p>
+
+  <section class="stats-grid">
+    <article class="stat-card">
+      <div>
+        <p>Total trips</p>
+        <h2>{{ trips.length }}</h2>
+        <small>All recorded trips</small>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div>
+        <p>Active trips</p>
+        <h2>{{ activeTrips }}</h2>
+        <small>Dispatched or in transit</small>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div>
+        <p>Planned / scheduled</p>
+        <h2>{{ plannedTrips }}</h2>
+        <small>Awaiting dispatch</small>
+      </div>
+    </article>
+
+    <article class="stat-card">
+      <div>
+        <p>Shipment assignments</p>
+        <h2>{{ totalShipments }}</h2>
+        <small>Across all trips</small>
+      </div>
+    </article>
+  </section>
+
+  <section class="trips-panel">
+    <div class="panel-heading">
+      <div>
+        <h2>Trip register</h2>
+        <p>Review trip schedules, assignments, routes and progress.</p>
+      </div>
+      <span class="result-count">{{ filteredTrips.length }} records</span>
+    </div>
+
+    <div class="filter-row">
+      <label class="search-box">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="1.8" stroke-linecap="round">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m16 16 4 4"></path>
+        </svg>
+        <input
+          type="search"
+          [(ngModel)]="searchTerm"
+          placeholder="Search trip, vehicle, driver or location"
+          aria-label="Search trips"
+        />
+      </label>
+
+    </div>
+
+    <div class="table-scroll" *ngIf="filteredTrips.length; else emptyTrips">
+      <table>
+        <thead>
+          <tr>
+            <th>Trip reference</th>
+            <th>Vehicle</th>
+            <th>Driver</th>
+            <th>Route &amp; stops</th>
+            <th>Schedule</th>
+            <th>Shipments</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          <tr *ngFor="let trip of filteredTrips; trackBy: trackByTrip">
+            <td>
+              <strong class="trip-reference">{{ trip.referenceNumber }}</strong>
+              <small class="muted block">{{ trip.id }}</small>
+            </td>
+
+            <td>
+              <strong>{{ trip.vehicleRegistration }}</strong>
+              <small class="muted block">{{ trip.vehicleId }}</small>
+            </td>
+
+            <td>
+              <span>{{ trip.driverName }}</span>
+              <small class="muted block">
+                {{ trip.driverId || 'Unassigned' }}
+              </small>
+            </td>
+
+            <td>
+              <div class="route-summary">
+                <span class="route-line"></span>
+                <div>
+                  <strong>
+                    {{ trip.stops.length ? trip.stops[0].location : 'No stops added' }}
+                  </strong>
+                  <small class="muted block">
+                    {{ trip.stops.length }} stops
+                    <span *ngIf="trip.distanceKm"> · {{ trip.distanceKm }} km</span>
+                  </small>
+                </div>
+              </div>
+            </td>
+
+            <td>
+              <strong>{{ trip.plannedStart | date:'d MMM y' }}</strong>
+              <small class="muted block">
+                {{ trip.plannedStart | date:'HH:mm' }} –
+                {{ trip.plannedEnd | date:'HH:mm' }}
+              </small>
+            </td>
+
+            <td>
+              <span class="shipment-count">
+                {{ trip.shipmentReferences.length }}
+              </span>
+            </td>
+
+            <td>
+              <span class="status-pill" [ngClass]="trip.status.toLowerCase()">
+                {{ getStatusLabel(trip.status) }}
+              </span>
+            </td>
+
+            <td>
+              <button
+                type="button"
+                class="text-button"
+                (click)="openDetails(trip)"
+              >
+                View details
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <ng-template #emptyTrips>
+      <div class="empty-state">
+        <h3>No trips found</h3>
+        <p>Try changing your search or status filter, or create a trip.</p>
+      </div>
+    </ng-template>
+  </section>
+
+  <!-- Create trip modal -->
+ <div class="modal-backdrop" *ngIf="showCreateForm" (click)="closeCreateForm()">
+  <section
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="create-trip-title"
+    (click)="$event.stopPropagation()"
+  >
+    <header class="modal-header">
+      <div>
+        <h2 id="create-trip-title">Create trip</h2>
+        <p>Select a vehicle, approved driver, and eligible shipments.</p>
+      </div>
+
+      <button
+        type="button"
+        class="close-button"
+        aria-label="Close"
+        (click)="closeCreateForm()"
+      >×</button>
+    </header>
+
+    <form class="modal-body" (ngSubmit)="createTrip()">
+      <div class="form-grid">
+        <label class="form-field">
+          <span>Available vehicle *</span>
+          <select name="vehicleId" [(ngModel)]="form.vehicleId" required>
+            <option value="">Select vehicle</option>
+            <option *ngFor="let vehicle of availableVehicles" [value]="vehicle.id">
+              {{ vehicle.registrationNumber }} — {{ vehicle.make }} {{ vehicle.model }}
+            </option>
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span>Approved driver *</span>
+          <select name="driverId" [(ngModel)]="form.driverId" required>
+            <option value="">Select driver</option>
+            <option *ngFor="let driver of eligibleDrivers" [value]="driver.id">
+              {{ driver.fullName }}
+            </option>
+          </select>
+        </label>
+
+        <label class="form-field">
+          <span>Planned start *</span>
+          <input
+            type="datetime-local"
+            name="plannedStart"
+            [(ngModel)]="form.plannedStart"
+            required
+          />
+        </label>
+
+        <label class="form-field">
+          <span>Planned end *</span>
+          <input
+            type="datetime-local"
+            name="plannedEnd"
+            [(ngModel)]="form.plannedEnd"
+            required
+          />
+        </label>
+
+        <label class="form-field">
+          <span>Estimated distance (km)</span>
+          <input
+            type="number"
+            name="distanceKm"
+            min="0"
+            [(ngModel)]="form.distanceKm"
+          />
+        </label>
+
+        <label class="form-field full-width">
+          <span>Notes</span>
+          <textarea
+            name="notes"
+            [(ngModel)]="form.notes"
+            rows="3"
+            placeholder="Special instructions or planning notes"
+          ></textarea>
+        </label>
+      </div>
+
+      <section class="shipment-picker">
+        <div class="picker-heading">
+          <h3>Select shipments *</h3>
+          <span>{{ form.shipmentIds.length }} selected</span>
+        </div>
+
+        <p class="picker-description">
+          Only shipments marked READY are listed.
+        </p>
+
+        <div *ngIf="eligibleShipments.length; else noEligibleShipments">
+          <label
+            class="shipment-option"
+            *ngFor="let shipment of eligibleShipments"
+          >
+            <input
+              type="checkbox"
+              [checked]="form.shipmentIds.includes(shipment.id)"
+              (change)="toggleShipment(
+                shipment.id,
+                $any($event.target).checked
+              )"
+            />
+
+            <span class="shipment-option-content">
+              <strong>{{ shipment.referenceNumber }}</strong>
+              <small>{{ shipment.organizationName }}</small>
+              <small>
+                {{ shipment.cargoDescription }} ·
+                {{ shipment.weightKg | number }} kg ·
+                {{ shipment.volumeM3 }} m³
+              </small>
+            </span>
+          </label>
+        </div>
+
+        <ng-template #noEligibleShipments>
+          <p class="empty-picker">
+            No READY shipments are currently available.
+          </p>
+        </ng-template>
+      </section>
+
+      <section class="capacity-preview" *ngIf="selectedVehicle">
+        <h3>Vehicle capacity check</h3>
+
+        <div class="capacity-preview-row">
+          <span>Weight</span>
+          <strong>
+            {{ selectedTotalWeightKg | number }} /
+            {{ selectedVehicle.maxWeightKg | number }} kg
+          </strong>
+        </div>
+
+        <div class="capacity-preview-row">
+          <span>Volume</span>
+          <strong>
+            {{ selectedTotalVolumeM3 }} /
+            {{ selectedVehicle.cargoVolumeM3 }} m³
+          </strong>
+        </div>
+
+        <p class="capacity-error" *ngIf="capacityWarning">
+          {{ capacityWarning }}
+        </p>
+
+        <p class="capacity-success" *ngIf="!capacityWarning && selectedShipments.length">
+          The selected shipments fit within the vehicle's listed capacity.
+        </p>
+      </section>
+
+      <div class="form-notice">
+        This creates a draft record only. Route optimization, scheduling
+        conflicts, cargo compatibility, company authorization and final
+        dispatch checks will be enforced as the workflow is integrated.
+      </div>
+
+      <p class="feedback-message" *ngIf="feedbackMessage">
+        {{ feedbackMessage }}
+      </p>
+
+      <footer class="modal-footer">
+        <button type="button" class="secondary-button" (click)="closeCreateForm()">
+          Cancel
+        </button>
+
+        <button
+          type="submit"
+          class="primary-button"
+          [disabled]="!!capacityWarning"
+        >
+          Create draft trip
+        </button>
+      </footer>
+    </form>
+  </section>
+</div>
+
+  <!-- Trip details modal -->
+  <div
+    class="modal-backdrop"
+    *ngIf="selectedTrip as selected"
+    (click)="closeDetails()"
+  >
+    <section
+      class="modal details-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="trip-details-title"
+      (click)="$event.stopPropagation()"
+    >
+      <header class="modal-header">
+        <div>
+          <span class="eyebrow">{{ selected.referenceNumber }}</span>
+          <h2 id="trip-details-title">Trip details</h2>
+          <p>{{ selected.vehicleRegistration }} · {{ selected.driverName }}</p>
+        </div>
+        <button
+          type="button"
+          class="close-button"
+          aria-label="Close"
+          (click)="closeDetails()"
+        >×</button>
+      </header>
+
+      <div class="modal-body">
+        <div class="detail-status-row">
+          <span class="muted">Current status</span>
+          <span class="status-pill" [ngClass]="selected.status.toLowerCase()">
+            {{ getStatusLabel(selected.status) }}
+          </span>
+        </div>
+
+        <div class="detail-grid">
+          <div class="detail-box">
+            <small>Planned start</small>
+            <strong>{{ selected.plannedStart | date:'d MMM y, HH:mm' }}</strong>
+          </div>
+          <div class="detail-box">
+            <small>Planned end</small>
+            <strong>{{ selected.plannedEnd | date:'d MMM y, HH:mm' }}</strong>
+          </div>
+          <div class="detail-box">
+            <small>Estimated distance</small>
+            <strong>{{ selected.distanceKm }} km</strong>
+          </div>
+          <div class="detail-box">
+            <small>Linked shipments</small>
+            <strong>{{ selected.shipmentReferences.length }}</strong>
+          </div>
+        </div>
+
+        <section class="detail-section">
+          <h3>Trip stops</h3>
+
+          <div *ngIf="selected.stops.length; else noStops" class="stop-list">
+            <article
+              class="stop-item"
+              *ngFor="let stop of selected.stops; trackBy: trackByStop"
+            >
+              <div class="stop-sequence">{{ stop.sequence }}</div>
+              <div class="stop-content">
+                <div class="stop-title-row">
+                  <strong>{{ stop.location }}</strong>
+                  <span class="stop-type">{{ stop.type }}</span>
+                </div>
+                <p>{{ stop.organizationName }}</p>
+                <small>{{ stop.shipmentReference }}</small>
+                <small class="stop-time">
+                  Planned: {{ stop.plannedArrival | date:'d MMM y, HH:mm' }}
+                </small>
+              </div>
+              <span class="stop-status">{{ getStopStatusLabel(stop.status) }}</span>
+            </article>
+          </div>
+
+          <ng-template #noStops>
+            <p class="muted">No stops have been added to this draft trip.</p>
+          </ng-template>
+        </section>
+
+        <section class="detail-section">
+          <h3>Shipment references</h3>
+          <div *ngIf="selected.shipmentReferences.length; else noShipments" class="reference-list">
+            <span *ngFor="let reference of selected.shipmentReferences">
+              {{ reference }}
+            </span>
+          </div>
+          <ng-template #noShipments>
+            <p class="muted">
+              No shipments linked yet. Shipment selection will be added in the
+              next iteration.
+            </p>
+          </ng-template>
+        </section>
+
+        <section class="detail-section">
+          <h3>Update trip status</h3>
+          <div class="status-actions">
+            <button
+              type="button"
+              class="secondary-button"
+              *ngIf="selected.status === 'PLANNED'"
+              (click)="changeTripStatus(selected, 'SCHEDULED')"
+            >Schedule</button>
+
+            <button
+              type="button"
+              class="secondary-button"
+              *ngIf="selected.status === 'SCHEDULED'"
+              (click)="changeTripStatus(selected, 'DISPATCHED')"
+            >Dispatch</button>
+
+            <button
+              type="button"
+              class="secondary-button"
+              *ngIf="selected.status === 'DISPATCHED'"
+              (click)="changeTripStatus(selected, 'IN_TRANSIT')"
+            >Start transit</button>
+
+            <button
+              type="button"
+              class="secondary-button"
+              *ngIf="selected.status === 'IN_TRANSIT'"
+              (click)="changeTripStatus(selected, 'COMPLETED')"
+            >Complete trip</button>
+
+            <button
+              type="button"
+              class="danger-button"
+              *ngIf="['PLANNED', 'SCHEDULED', 'DISPATCHED'].includes(selected.status)"
+              (click)="changeTripStatus(selected, 'CANCELLED')"
+            >Cancel trip</button>
+          </div>
+          <p class="feedback-message" *ngIf="feedbackMessage">
+            {{ feedbackMessage }}
+          </p>
+        </section>
+
+        <section class="detail-section" *ngIf="selected.notes">
+          <h3>Notes</h3>
+          <p class="notes-text">{{ selected.notes }}</p>
+        </section>
+      </div>
+      
+<div class="planning-warnings">
+  <p *ngIf="capacityWarning">{{ capacityWarning }}</p>
+  <p *ngIf="cargoCompatibilityWarning">
+    {{ cargoCompatibilityWarning }}
+  </p>
+  <p *ngIf="schedulingWarning">{{ schedulingWarning }}</p>
+  <p *ngIf="shipmentWindowWarning">{{ shipmentWindowWarning }}</p>
+</div>
+
+      <footer class="modal-footer">
+        <button type="button" class="primary-button" (click)="closeDetails()">
+          Close
+        </button>
+      </footer>
+    </section>
+  </div>
+</div>

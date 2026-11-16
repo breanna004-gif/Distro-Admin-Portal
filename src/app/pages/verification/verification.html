@@ -1,0 +1,147 @@
+<div class="verification-page">
+
+  <div class="verification-card">
+
+    <div class="brand-mark">
+      <img src="/logiflow-logo.svg" alt="" />
+    </div>
+
+    <div class="page-header">
+
+      <span class="eyebrow">
+        ACCOUNT SECURITY
+      </span>
+
+      <h1>
+        Verify your account
+      </h1>
+
+      <p>
+        Enter the six-digit verification code sent
+        to your registered phone number.
+      </p>
+
+    </div>
+
+
+    @if (errorMessage) {
+
+      <div class="message error">
+        {{ errorMessage }}
+      </div>
+
+    }
+
+
+    @if (successMessage) {
+
+      <div class="message success">
+        {{ successMessage }}
+      </div>
+
+    }
+
+
+    <form
+      (ngSubmit)="verify()"
+      #verificationForm="ngForm"
+    >
+
+      <div class="form-group">
+
+        <label for="identifier">
+          Email or phone number
+        </label>
+
+        <input
+          id="identifier"
+          name="identifier"
+          type="text"
+          [(ngModel)]="identifier"
+          placeholder="Enter your email or phone"
+          autocomplete="email"
+          [disabled]="loading"
+          required
+        />
+
+      </div>
+
+
+      <div class="form-group">
+
+        <label for="otp">
+          Verification code
+        </label>
+
+        <input
+          id="otp"
+          name="otp"
+          type="text"
+          [(ngModel)]="otp"
+          placeholder="000000"
+          maxlength="6"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          [disabled]="loading"
+          required
+        />
+
+        <span class="field-hint">
+          Enter the 6-digit code sent to your phone.
+        </span>
+
+      </div>
+
+
+      <button
+        class="primary-button"
+        type="submit"
+        [disabled]="loading"
+      >
+
+        @if (loading) {
+          Verifying...
+        } @else {
+          Verify account
+        }
+
+      </button>
+
+    </form>
+
+
+    <div class="resend-section">
+
+      <span>
+        Didn't receive the code?
+      </span>
+
+      <button
+        type="button"
+        class="text-button"
+        (click)="resendCode()"
+        [disabled]="resending"
+      >
+
+        @if (resending) {
+          Sending...
+        } @else {
+          Resend code
+        }
+
+      </button>
+
+    </div>
+
+
+    <button
+      type="button"
+      class="back-button"
+      (click)="backToLogin()"
+    >
+      Back to login
+    </button>
+
+  </div>
+
+</div>

@@ -1,0 +1,83 @@
+import { TestBed } from '@angular/core/testing';
+import { provideHttpClient } from '@angular/common/http';
+import {
+  HttpTestingController,
+  provideHttpClientTesting
+} from '@angular/common/http/testing';
+
+import { ProductService } from './product';
+
+describe('ProductService categories', () => {
+  let service: ProductService;
+  let httpTesting: HttpTestingController;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideHttpClient(),
+        provideHttpClientTesting()
+      ]
+    });
+
+    service = TestBed.inject(ProductService);
+    httpTesting = TestBed.inject(HttpTestingController);
+  });
+
+  afterEach(() => {
+    httpTesting.verify();
+  });
+
+  it('loads categories from the shared product categories endpoint', () => {
+    let categories: string[] | undefined;
+
+    service.getCategories().subscribe(result => {
+      categories = result;
+    });
+
+    const request = httpTesting.expectOne('/api/v1/products/categories');
+    expect(request.request.method).toBe('GET');
+    request.flush(['Food', 'Equipment']);
+
+    expect(categories).toEqual(['Food', 'Equipment']);
+  });
+
+  it('filters product requests by category on the server', () => {
+    service.getProducts(0, 20, '', 'Safety Equipment').subscribe();
+
+    const request = httpTesting.expectOne(
+      request => request.url === '/api/v1/products' &&
+        request.params.get('category') === 'Safety Equipment'
+    );
+    expect(request.request.method).toBe('GET');
+    request.flush({
+      content: [],
+      totalElements: 0,
+      totalPages: 0
+    });
+  });
+
+  it('creates, renames, and deactivates global categories', () => {
+    service.createCategory('Food').subscribe();
+    const createRequest = httpTesting.expectOne(
+      '/api/v1/products/categories'
+    );
+    expect(createRequest.request.method).toBe('POST');
+    expect(createRequest.request.body).toEqual({ name: 'Food' });
+    createRequest.flush(null);
+
+    service.renameCategory('Old Category', 'New Category').subscribe();
+    const renameRequest = httpTesting.expectOne(
+      '/api/v1/products/categories/Old%20Category'
+    );
+    expect(renameRequest.request.method).toBe('PUT');
+    expect(renameRequest.request.body).toEqual({ name: 'New Category' });
+    renameRequest.flush(null);
+
+    service.deactivateCategory('New Category').subscribe();
+    const deactivateRequest = httpTesting.expectOne(
+      '/api/v1/products/categories/New%20Category'
+    );
+    expect(deactivateRequest.request.method).toBe('DELETE');
+    deactivateRequest.flush(null);
+  });
+});

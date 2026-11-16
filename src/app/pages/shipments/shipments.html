@@ -1,0 +1,334 @@
+
+<div class="shipments-page">
+  <header class="page-header">
+    <div>
+      <p class="eyebrow">LOGISTICS OPERATIONS / SHIPMENTS</p>
+      <h1>Shipment Management</h1>
+      <p class="subtitle">Manage cargo requests, delivery windows, and shared-load eligibility.</p>
+    </div>
+    <button class="primary-button" type="button" (click)="openRegistration()">
+      <span class="plus">+</span> Create shipment
+    </button>
+  </header>
+
+  <div *ngIf="successMessage" class="notice success" role="status">
+    {{ successMessage }}
+    <button type="button" (click)="clearMessages()" aria-label="Dismiss">×</button>
+  </div>
+  <div *ngIf="errorMessage" class="notice error" role="alert">
+    {{ errorMessage }}
+    <button type="button" (click)="clearMessages()" aria-label="Dismiss">×</button>
+  </div>
+
+  <section class="stats-grid">
+    <article class="stat-card">
+      <span class="stat-label">Total shipments</span>
+      <div class="stat-value">{{ totalShipments }}</div>
+      <p>Registered cargo requests</p>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">Awaiting dispatch</span>
+      <div class="stat-value">{{ awaitingDispatch }}</div>
+      <p>Pending, ready or matched</p>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">In transit</span>
+      <div class="stat-value">{{ inTransit }}</div>
+      <p>Dispatched or on the road</p>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">Delivered</span>
+      <div class="stat-value">{{ delivered }}</div>
+      <p>Completed deliveries</p>
+    </article>
+  </section>
+
+  <section class="directory-card">
+    <div class="directory-heading">
+      <div>
+        <h2>Shipment directory</h2>
+        <p>Review cargo, routes, delivery windows, and status.</p>
+      </div>
+      <span class="record-count">{{ filteredShipments.length }} shipments</span>
+    </div>
+
+    <div class="toolbar">
+      <label class="search-box">
+        <span aria-hidden="true">⌕</span>
+        <input type="search" [(ngModel)]="searchTerm"
+          placeholder="Search reference, organization, cargo or route..."
+          aria-label="Search shipments" />
+      </label>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr>
+            <th>Shipment</th>
+            <th>Organization</th>
+            <th>Route</th>
+            <th>Cargo / capacity</th>
+            <th>Shared load</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let shipment of filteredShipments; trackBy: trackByShipmentId">
+            <td>
+              <div class="shipment-cell">
+                <div class="shipment-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"
+                    aria-hidden="true">
+                    <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path>
+                    <path d="m3.3 7 8.7 5 8.7-5"></path>
+                    <path d="M12 22V12"></path>
+                  </svg>
+                </div>
+                <div class="shipment-info">
+                  <strong>{{ shipment.referenceNumber }}</strong>
+                  <span>{{ shipment.cargoDescription }}</span>
+                </div>
+              </div>
+            </td>
+            <td>{{ shipment.organizationName }}</td>
+            <td>
+              <div class="route-cell">
+                <strong>{{ shipment.pickupLocation }}</strong>
+                <span>to {{ shipment.deliveryLocation }}</span>
+              </div>
+            </td>
+            <td>
+              <strong class="capacity-value">{{ shipment.weightKg | number }} kg</strong>
+              <span class="capacity-volume">{{ shipment.volumeM3 }} m³ · {{ cargoLabel(shipment.cargoCategory) }}</span>
+            </td>
+            <td>
+              <span class="shared-pill" [class.shared-yes]="shipment.sharedLoadAllowed">
+                {{ shipment.sharedLoadAllowed ? 'Eligible' : 'Not allowed' }}
+              </span>
+            </td>
+            <td>
+              <span class="status-pill" [ngClass]="'status-' + shipment.status.toLowerCase()">
+                <span class="status-dot"></span>
+                {{ statusLabel(shipment.status) }}
+              </span>
+            </td>
+            <td>
+              <button class="text-button" type="button" (click)="viewShipment(shipment)">
+                View details
+              </button>
+            </td>
+          </tr>
+          <tr *ngIf="filteredShipments.length === 0">
+            <td colspan="7">
+              <div class="empty-state">
+                <strong>No shipments found</strong>
+                <p>Try another search or create a shipment.</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- Create shipment panel -->
+<div class="overlay" *ngIf="showForm" (click)="closeForm()">
+  <section class="side-panel" role="dialog" aria-modal="true"
+    aria-labelledby="create-shipment-title" (click)="$event.stopPropagation()">
+    <header class="panel-header">
+      <div>
+        <p class="eyebrow">SHIPMENT REGISTRATION</p>
+        <h2 id="create-shipment-title">Create shipment</h2>
+        <p>Record the cargo, route, and handling requirements.</p>
+      </div>
+      <button class="close-button" type="button" (click)="closeForm()" aria-label="Close">×</button>
+    </header>
+
+    <form #shipmentForm="ngForm" (ngSubmit)="registerShipment()">
+      <section class="form-section">
+        <h3>Organization and cargo</h3>
+        <label class="form-field">
+          <span>Requesting organization *</span>
+          <select name="organizationId" [(ngModel)]="form.organizationId" required>
+            <option value="" disabled>Select organization</option>
+            <option *ngFor="let organization of organizations" [value]="organization.id">
+              {{ organization.name }} ({{ organization.type | titlecase }})
+            </option>
+          </select>
+        </label>
+        <label class="form-field">
+          <span>Cargo description *</span>
+          <input name="cargoDescription" [(ngModel)]="form.cargoDescription"
+            required maxlength="160" placeholder="e.g. Packaged dry food products" />
+        </label>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Cargo category *</span>
+            <select name="cargoCategory" [(ngModel)]="form.cargoCategory" required>
+              <option *ngFor="let category of cargoOptions" [value]="category">
+                {{ cargoLabel(category) }}
+              </option>
+            </select>
+          </label>
+          <label class="form-field">
+            <span>Weight (kg) *</span>
+            <input type="number" name="weightKg" [(ngModel)]="form.weightKg"
+              required min="0.1" />
+          </label>
+        </div>
+        <label class="form-field">
+          <span>Volume (m³) *</span>
+          <input type="number" name="volumeM3" [(ngModel)]="form.volumeM3"
+            required min="0.1" step="0.1" />
+        </label>
+
+        <div class="cargo-options">
+          <span class="field-heading">Handling requirements *</span>
+          <label *ngFor="let requirement of handlingOptions" class="cargo-option">
+            <input type="checkbox"
+              [checked]="form.handlingRequirements.includes(requirement)"
+              (change)="toggleHandling(requirement, $any($event.target).checked)" />
+            {{ handlingLabel(requirement) }}
+          </label>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h3>Pickup details</h3>
+        <label class="form-field">
+          <span>Pickup location *</span>
+          <input name="pickupLocation" [(ngModel)]="form.pickupLocation"
+            required placeholder="e.g. Industrial Area, Nairobi" />
+        </label>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Pickup window starts *</span>
+            <input type="datetime-local" name="pickupWindowStart"
+              [(ngModel)]="form.pickupWindowStart" required />
+          </label>
+          <label class="form-field">
+            <span>Pickup window ends *</span>
+            <input type="datetime-local" name="pickupWindowEnd"
+              [(ngModel)]="form.pickupWindowEnd" required />
+          </label>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h3>Delivery details</h3>
+        <label class="form-field">
+          <span>Delivery location *</span>
+          <input name="deliveryLocation" [(ngModel)]="form.deliveryLocation"
+            required placeholder="e.g. Nakuru Town" />
+        </label>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Delivery window starts *</span>
+            <input type="datetime-local" name="deliveryWindowStart"
+              [(ngModel)]="form.deliveryWindowStart" required />
+          </label>
+          <label class="form-field">
+            <span>Delivery window ends *</span>
+            <input type="datetime-local" name="deliveryWindowEnd"
+              [(ngModel)]="form.deliveryWindowEnd" required />
+          </label>
+        </div>
+      </section>
+
+      <section class="form-section">
+        <h3>Dispatch preferences</h3>
+        <label class="toggle-field">
+          <input type="checkbox" name="sharedLoadAllowed" [(ngModel)]="form.sharedLoadAllowed" />
+          <span>Allow consideration for shared loads</span>
+        </label>
+        <p class="field-help">
+          This allows LogiFlow to recommend the shipment for compatible loads.
+          It does not authorize another organization to handle the cargo.
+        </p>
+        <label class="form-field">
+          <span>Special instructions</span>
+          <textarea name="specialInstructions" [(ngModel)]="form.specialInstructions"
+            rows="3" placeholder="Temperature, handling or delivery instructions"></textarea>
+        </label>
+      </section>
+
+      <div class="panel-actions">
+        <button class="secondary-button" type="button" (click)="closeForm()">Cancel</button>
+        <button class="primary-button" type="submit" [disabled]="shipmentForm.invalid">
+          Create shipment
+        </button>
+      </div>
+    </form>
+  </section>
+</div>
+
+<!-- Shipment details panel -->
+<div class="overlay" *ngIf="selectedShipment as shipment" (click)="closeDetails()">
+  <section class="side-panel" role="dialog" aria-modal="true"
+    aria-labelledby="shipment-details-title" (click)="$event.stopPropagation()">
+    <header class="panel-header">
+      <div>
+        <p class="eyebrow">{{ shipment.id }}</p>
+        <h2 id="shipment-details-title">{{ shipment.referenceNumber }}</h2>
+        <p>{{ shipment.organizationName }}</p>
+        <span class="status-pill" [ngClass]="'status-' + shipment.status.toLowerCase()">
+          <span class="status-dot"></span>{{ statusLabel(shipment.status) }}
+        </span>
+      </div>
+      <button class="close-button" type="button" (click)="closeDetails()" aria-label="Close">×</button>
+    </header>
+
+    <section class="detail-section">
+      <h3>Cargo information</h3>
+      <div class="detail-row"><span>Description</span><strong>{{ shipment.cargoDescription }}</strong></div>
+      <div class="detail-row"><span>Category</span><strong>{{ cargoLabel(shipment.cargoCategory) }}</strong></div>
+      <div class="detail-row"><span>Weight</span><strong>{{ shipment.weightKg | number }} kg</strong></div>
+      <div class="detail-row"><span>Volume</span><strong>{{ shipment.volumeM3 }} m³</strong></div>
+      <div class="detail-row"><span>Handling</span><strong>{{ shipment.handlingRequirements.map(handlingLabel).join(', ') }}</strong></div>
+      <div class="detail-row"><span>Shared loads</span><strong>{{ shipment.sharedLoadAllowed ? 'Permitted for consideration' : 'Not permitted' }}</strong></div>
+    </section>
+
+    <section class="detail-section">
+      <h3>Route and schedule</h3>
+      <div class="detail-row"><span>Pickup</span><strong>{{ shipment.pickupLocation }}</strong></div>
+      <div class="detail-row"><span>Pickup window</span><strong>{{ shipment.pickupWindowStart | date:'dd MMM, HH:mm' }} – {{ shipment.pickupWindowEnd | date:'HH:mm' }}</strong></div>
+      <div class="detail-row"><span>Delivery</span><strong>{{ shipment.deliveryLocation }}</strong></div>
+      <div class="detail-row"><span>Delivery window</span><strong>{{ shipment.deliveryWindowStart | date:'dd MMM, HH:mm' }} – {{ shipment.deliveryWindowEnd | date:'HH:mm' }}</strong></div>
+    </section>
+
+    <section class="detail-section">
+      <h3>Dispatch information</h3>
+      <div class="detail-row"><span>Vehicle</span><strong>{{ shipment.assignedVehicleRegistration || 'Not assigned' }}</strong></div>
+      <div class="detail-row"><span>Trip</span><strong>{{ shipment.tripId || 'Not assigned' }}</strong></div>
+      <p *ngIf="shipment.specialInstructions" class="notes-copy">{{ shipment.specialInstructions }}</p>
+    </section>
+
+    <section class="detail-section">
+      <h3>Update shipment status</h3>
+      <div class="status-actions">
+        <button *ngIf="shipment.status === 'PENDING'" class="secondary-button"
+          type="button" (click)="changeStatus(shipment, 'READY')">Mark ready</button>
+        <button *ngIf="shipment.status === 'READY'" class="secondary-button"
+          type="button" (click)="changeStatus(shipment, 'MATCHED')">Mark matched</button>
+        <button *ngIf="shipment.status === 'READY' || shipment.status === 'MATCHED'"
+          class="primary-button" type="button"
+          (click)="changeStatus(shipment, 'DISPATCHED')">Dispatch</button>
+        <button *ngIf="shipment.status === 'DISPATCHED'" class="secondary-button"
+          type="button" (click)="changeStatus(shipment, 'IN_TRANSIT')">Mark in transit</button>
+        <button *ngIf="shipment.status === 'IN_TRANSIT'" class="secondary-button"
+          type="button" (click)="changeStatus(shipment, 'DELIVERED')">Mark delivered</button>
+        <button *ngIf="shipment.status === 'PENDING' || shipment.status === 'READY'"
+          class="danger-button" type="button"
+          (click)="changeStatus(shipment, 'CANCELLED')">Cancel shipment</button>
+      </div>
+      <p class="field-help">
+        Status changes are simulated in this frontend prototype.
+        Dispatch, matching and delivery confirmation will later be validated by the backend.
+      </p>
+    </section>
+  </section>
+</div>

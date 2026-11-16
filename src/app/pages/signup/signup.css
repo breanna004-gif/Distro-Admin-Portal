@@ -1,0 +1,395 @@
+/* ============================================================
+   SIGNUP PAGE
+   ============================================================ */
+
+.signup-page {
+  min-height: 100vh;
+  width: 100%;
+  background: #f4f6f9;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 40px 20px;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   SIGNUP CARD
+   ============================================================ */
+
+.signup-card {
+  width: 100%;
+  max-width: 850px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 40px;
+  box-sizing: border-box;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+
+.signup-header {
+  text-align: center;
+  margin-bottom: 35px;
+}
+
+.brand-icon {
+  width: 60px;
+  height: 60px;
+  margin: 0 auto 15px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.brand-icon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.signup-header h1 {
+  margin: 0 0 8px;
+  font-size: 30px;
+  font-weight: 700;
+  color: #111827;
+}
+
+.signup-header p {
+  margin: 0;
+  color: #6b7280;
+  font-size: 15px;
+}
+
+/* ============================================================
+   ACCOUNT TYPE
+   ============================================================ */
+
+.account-type-section {
+  margin-bottom: 30px;
+}
+
+.section-label {
+  display: block;
+  margin-bottom: 12px;
+
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.account-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+}
+
+.account-option {
+  width: 100%;
+  padding: 18px;
+
+  display: flex;
+  align-items: center;
+  gap: 15px;
+
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+
+  text-align: left;
+  cursor: pointer;
+
+  transition: all 0.2s ease;
+}
+
+.account-option:hover {
+  border-color: #111827;
+  background: #f9fafb;
+}
+
+.account-option.selected {
+  border: 2px solid #111827;
+  background: #f3f4f6;
+}
+
+.option-icon {
+  width: 45px;
+  height: 45px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f3f4f6;
+  border-radius: 10px;
+
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.account-option strong {
+  display: block;
+  margin-bottom: 5px;
+
+  color: #111827;
+  font-size: 15px;
+}
+
+.account-option span {
+  display: block;
+
+  color: #6b7280;
+  font-size: 13px;
+}
+
+/* ============================================================
+   MESSAGES
+   ============================================================ */
+
+.message {
+  padding: 13px 15px;
+  margin-bottom: 20px;
+
+  border-radius: 8px;
+
+  font-size: 14px;
+}
+
+.message.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.message.success {
+  background: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+}
+
+/* ============================================================
+   FORM SECTIONS
+   ============================================================ */
+
+.form-section {
+  margin-bottom: 30px;
+  padding-bottom: 25px;
+
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.form-section h2 {
+  margin: 0 0 20px;
+
+  color: #111827;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+/* ============================================================
+   FORM ROW
+   ============================================================ */
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* ============================================================
+   FORM GROUP
+   ============================================================ */
+
+.form-group {
+  margin-bottom: 18px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 7px;
+
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  height: 45px;
+
+  padding: 0 13px;
+
+  box-sizing: border-box;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+
+  background: #ffffff;
+  color: #111827;
+
+  font-size: 14px;
+
+  outline: none;
+
+  transition: border-color 0.2s ease,
+              box-shadow 0.2s ease;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 7px;
+  color: #6b7280;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: #111827;
+
+  box-shadow: 0 0 0 3px rgba(17, 24, 39, 0.08);
+}
+
+.form-group input::placeholder {
+  color: #9ca3af;
+}
+
+/* ============================================================
+   SIGNUP BUTTON
+   ============================================================ */
+
+.signup-button {
+  width: 100%;
+  height: 48px;
+
+  border: none;
+  border-radius: 8px;
+
+  background: #111827;
+  color: #ffffff;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition: background 0.2s ease;
+}
+
+.signup-button:hover:not(:disabled) {
+  background: #1f2937;
+}
+
+.signup-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ============================================================
+   LOGIN LINK
+   ============================================================ */
+
+.login-link {
+  margin-top: 25px;
+
+  text-align: center;
+
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.login-link button {
+  margin-left: 5px;
+
+  border: none;
+  background: none;
+
+  color: #111827;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.login-link button:hover {
+  text-decoration: underline;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+  .signup-page {
+    padding: 20px 12px;
+  }
+
+  .signup-card {
+    padding: 25px 20px;
+  }
+
+  .account-options {
+    grid-template-columns: 1fr;
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .signup-header h1 {
+    font-size: 25px;
+  }
+}
+
+.application-success {
+  text-align: center;
+  padding: 32px 20px;
+}
+
+.success-icon {
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.application-success h2 {
+  margin: 0 0 12px;
+  color: #172033;
+}
+
+.application-success p {
+  margin: 8px auto;
+  max-width: 520px;
+  color: #64748b;
+  line-height: 1.6;
+}
+
+.success-note {
+  max-width: 520px;
+  margin: 22px auto;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  color: #1e40af;
+  font-size: 14px;
+  line-height: 1.5;
+}

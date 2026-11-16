@@ -1,0 +1,1015 @@
+<div class="products-page">
+
+  <!-- ====================================== -->
+  <!-- HEADER -->
+  <!-- ====================================== -->
+
+  <div class="page-header">
+
+    <div>
+      <span class="eyebrow">PRODUCT MANAGEMENT</span>
+
+      <h2>Products</h2>
+
+      <p>
+        Manage products, pricing and product availability across the supply chain.
+      </p>
+    </div>
+
+    <button
+      class="add-button"
+      type="button"
+      (click)="openAddProductModal()"
+    >
+      <span>+</span>
+      Add Product
+    </button>
+
+  </div>
+
+
+  <!-- ====================================== -->
+  <!-- KPI CARDS -->
+  <!-- ====================================== -->
+
+  <div class="stats-grid">
+
+    <!-- Total Products -->
+    <div class="stat-card blue">
+
+      <div class="stat-top">
+        <div class="stat-icon">P</div>
+
+        <span class="trend">
+          Catalog
+        </span>
+      </div>
+
+      <span class="stat-label">
+        Total Products
+      </span>
+
+      <strong>
+        {{ productStats.totalProducts }}
+      </strong>
+
+      <span class="stat-note">
+        Registered products
+      </span>
+
+    </div>
+
+
+    <!-- Active Products -->
+    <div class="stat-card green">
+
+      <div class="stat-top">
+        <div class="stat-icon">✓</div>
+
+        <span class="trend">
+          Active
+        </span>
+      </div>
+
+      <span class="stat-label">
+        Active Products
+      </span>
+
+      <strong>
+        {{ productStats.activeProducts }}
+      </strong>
+
+      <span class="stat-note">
+        Currently available
+      </span>
+
+    </div>
+
+
+    <!-- Pending Products -->
+    <div class="stat-card orange">
+
+      <div class="stat-top">
+        <div class="stat-icon">P</div>
+
+        <span class="trend neutral">
+          Pending
+        </span>
+      </div>
+
+      <span class="stat-label">
+        Pending Products
+      </span>
+
+      <strong>
+        {{ productStats.pendingProducts }}
+      </strong>
+
+      <span class="stat-note">
+        Awaiting approval
+      </span>
+
+    </div>
+
+
+    <!-- Categories -->
+    <div class="stat-card purple">
+
+      <div class="stat-top">
+        <div class="stat-icon">C</div>
+
+        <span class="trend">
+          Categories
+        </span>
+      </div>
+
+      <span class="stat-label">
+        Product Categories
+      </span>
+
+      <strong>
+        {{ productStats.categories }}
+      </strong>
+
+      <span class="stat-note">
+        Across the platform
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- ====================================== -->
+  <!-- PRODUCTS CARD -->
+  <!-- ====================================== -->
+
+  <div class="products-card">
+
+    <!-- Table Header -->
+    <div class="table-header">
+
+      <div>
+
+        <h3>
+          Product Catalog
+        </h3>
+
+        <p>
+          View and manage products registered on the platform.
+        </p>
+
+      </div>
+
+
+      <div class="table-actions">
+
+        <div class="search-box">
+
+          <span>⌕</span>
+
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (input)="searchProducts()"
+            placeholder="Search products..."
+          />
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+
+    <!-- ====================================== -->
+    <!-- ERROR -->
+    <!-- ====================================== -->
+
+    @if (errorMessage) {
+
+      <div class="modal-error">
+        {{ errorMessage }}
+      </div>
+
+    }
+
+    @if (categoriesError) {
+      <p class="category-status error">{{ categoriesError }}</p>
+    }
+
+
+    <!-- ====================================== -->
+    <!-- TABLE -->
+    <!-- ====================================== -->
+
+    <div class="table-container">
+
+      <table>
+
+        <thead>
+
+          <tr>
+            <th>Product</th>
+            <th>SKU</th>
+            <th>Category</th>
+            <th>Organization</th>
+            <th>Unit Price</th>
+            <th>Stock</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+
+        </thead>
+
+
+        <tbody>
+
+          @if (loading) {
+
+            <tr>
+
+              <td
+                colspan="8"
+                class="empty-state"
+              >
+                Loading products...
+              </td>
+
+            </tr>
+
+          }
+
+          @else if (products.length === 0) {
+
+            <tr>
+
+              <td
+                colspan="8"
+                class="empty-state"
+              >
+                No products found.
+              </td>
+
+            </tr>
+
+          }
+
+          @else {
+
+            @for (
+              product of products;
+              track product.id
+            ) {
+
+              <tr>
+
+                <!-- Product -->
+                <td>
+
+                  <div class="product-cell">
+
+                    <div class="product-avatar">
+                      {{ product.name.charAt(0) }}
+                    </div>
+
+                    <div class="product-details">
+
+                      <strong>
+                        {{ product.name }}
+                      </strong>
+
+                      <span>
+                        {{ product.description || 'No description' }}
+                      </span>
+
+                    </div>
+
+                  </div>
+
+                </td>
+
+
+                <!-- SKU -->
+                <td>
+
+                  <span class="sku">
+                    {{ product.sku }}
+                  </span>
+
+                </td>
+
+
+                <!-- Category -->
+                <td>
+
+                  <span
+                    class="category-badge"
+                    [class.construction]="product.category === 'Construction'"
+                    [class.electronics]="product.category === 'Electronics'"
+                    [class.safety]="product.category === 'Safety Equipment'"
+                  >
+                    {{ product.category }}
+                  </span>
+
+                </td>
+
+
+                <!-- Organization -->
+                <td>
+
+                  {{ product.organizationName || 'Independent' }}
+
+                </td>
+
+
+                <!-- Unit Price -->
+                <td>
+
+                  <strong class="price">
+                    KES {{ product.unitPrice || 0 | number:'1.0-2' }}
+                  </strong>
+
+                </td>
+
+
+                <!-- Stock -->
+                <td>
+
+                  <span
+                    class="stock-value"
+                    [class.low-stock]="
+                      (product.stockQuantity || 0) < 50
+                    "
+                  >
+                    {{ product.stockQuantity || 0 }}
+                  </span>
+
+                </td>
+
+
+                <!-- Status -->
+                <td>
+
+                  <span
+                    class="status-badge"
+                    [class.active]="product.status === 'ACTIVE'"
+                    [class.inactive]="product.status === 'INACTIVE'"
+                    [class.pending]="product.status === 'PENDING'"
+                    [class.discontinued]="product.status === 'DISCONTINUED'"
+                  >
+                    {{ product.status }}
+                  </span>
+
+                </td>
+
+
+                <!-- Action -->
+                <td>
+
+                  <button
+                    type="button"
+                    class="view-button"
+                    (click)="viewProduct(product.id)"
+                  >
+                    View
+                  </button>
+
+                </td>
+
+              </tr>
+
+            }
+
+          }
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+
+    <!-- ====================================== -->
+    <!-- PAGINATION -->
+    <!-- ====================================== -->
+
+    <div class="pagination">
+
+      <span>
+        Showing {{ products.length }}
+        of {{ totalElements }} products
+      </span>
+
+      <div>
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="previousPage()"
+          [disabled]="currentPage === 0"
+        >
+          ‹
+        </button>
+
+        <button
+          type="button"
+          class="page-button active"
+        >
+          {{ currentPage + 1 }}
+        </button>
+
+        <button
+          type="button"
+          class="page-button"
+          (click)="nextPage()"
+          [disabled]="currentPage >= totalPages - 1"
+        >
+          ›
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ====================================== -->
+<!-- ADD PRODUCT MODAL -->
+<!-- ====================================== -->
+
+@if (showAddProductModal) {
+
+  <div
+    class="modal-overlay"
+    (click)="closeAddProductModal()"
+  >
+
+    <div
+      class="modal-card"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- Modal Header -->
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            PRODUCT MANAGEMENT
+          </span>
+
+          <h3>
+            Add Product
+          </h3>
+
+          <p>
+            Register a new product in the platform catalog.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeAddProductModal()"
+          [disabled]="savingProduct"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- Error -->
+      @if (addProductError) {
+
+        <div class="modal-error">
+          {{ addProductError }}
+        </div>
+
+      }
+
+
+      <!-- Form -->
+      <form
+        class="product-form"
+        (ngSubmit)="saveProduct()"
+      >
+
+        <!-- Product Name -->
+        <div class="form-group">
+
+          <label for="productName">
+            Product Name
+            <span>*</span>
+          </label>
+
+          <input
+            id="productName"
+            type="text"
+            name="productName"
+            [(ngModel)]="newProduct.name"
+            placeholder="Enter product name"
+            [disabled]="savingProduct"
+          />
+
+        </div>
+
+
+        <!-- SKU -->
+        <div class="form-group">
+
+          <label for="productSku">
+            SKU
+            <span>*</span>
+          </label>
+
+          <input
+            id="productSku"
+            type="text"
+            name="productSku"
+            [(ngModel)]="newProduct.sku"
+            placeholder="e.g. PRD-001"
+            [disabled]="savingProduct"
+          />
+
+        </div>
+
+
+        <!-- Category -->
+        <div class="form-group">
+
+          <label for="productCategory">
+            Category
+            <span>*</span>
+          </label>
+
+          <select
+            id="productCategory"
+            name="productCategory"
+            [(ngModel)]="newProduct.category"
+            [disabled]="savingProduct || loadingCategories || categories.length === 0"
+          >
+            <option value="" disabled>Select a category</option>
+            @for (category of categories; track category) {
+              <option [value]="category">{{ category }}</option>
+            }
+          </select>
+
+          @if (!loadingCategories && categories.length === 0) {
+            <small class="field-help">
+              No categories are configured. Ask a platform administrator to add one.
+            </small>
+          }
+
+        </div>
+
+
+        <!-- Organization -->
+        <div class="form-group">
+
+          <label for="productOrganization">
+            Organization
+            <span>*</span>
+          </label>
+
+          <select
+            id="productOrganization"
+            name="productOrganization"
+            [(ngModel)]="newProduct.organizationId"
+            [disabled]="savingProduct || loadingOrganizations"
+          >
+
+            <option value="">
+              {{
+                loadingOrganizations
+                  ? 'Loading organizations...'
+                  : 'Select organization'
+              }}
+            </option>
+
+            @for (
+              organization of organizations;
+              track organization.id
+            ) {
+
+              <option
+                [value]="organization.id"
+              >
+                {{ organization.name }}
+              </option>
+
+            }
+
+          </select>
+
+        </div>
+
+
+        <!-- Price + Stock -->
+        <div class="form-row">
+
+          <!-- Price -->
+          <div class="form-group">
+
+            <label for="productPrice">
+              Unit Price (KES)
+            </label>
+
+            <input
+              id="productPrice"
+              type="number"
+              name="productPrice"
+              [(ngModel)]="newProduct.unitPrice"
+              min="0"
+              placeholder="0"
+              [disabled]="savingProduct"
+            />
+
+          </div>
+
+
+          <!-- Stock -->
+          <div class="form-group">
+
+            <label for="productStock">
+              Initial Stock
+            </label>
+
+            <input
+              id="productStock"
+              type="number"
+              name="productStock"
+              [(ngModel)]="newProduct.stockQuantity"
+              min="0"
+              placeholder="0"
+              [disabled]="savingProduct"
+            />
+
+          </div>
+
+        </div>
+
+
+        <!-- Description -->
+        <div class="form-group">
+
+          <label for="productDescription">
+            Description
+          </label>
+
+          <textarea
+            id="productDescription"
+            name="productDescription"
+            [(ngModel)]="newProduct.description"
+            placeholder="Enter product description"
+            rows="3"
+            [disabled]="savingProduct"
+          ></textarea>
+
+        </div>
+
+
+        <!-- Actions -->
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeAddProductModal()"
+            [disabled]="savingProduct"
+          >
+            Cancel
+          </button>
+
+          <button
+            type="submit"
+            class="save-button"
+            [disabled]="savingProduct"
+          >
+
+            @if (savingProduct) {
+
+              Creating...
+
+            } @else {
+
+              Create Product
+
+            }
+
+          </button>
+
+        </div>
+
+      </form>
+
+    </div>
+
+  </div>
+
+}
+
+
+<!-- ====================================== -->
+<!-- VIEW PRODUCT MODAL -->
+<!-- ====================================== -->
+
+@if (showViewProductModal) {
+
+  <div
+    class="modal-overlay"
+    (click)="closeViewProductModal()"
+  >
+
+    <div
+      class="modal-card view-product-modal"
+      (click)="$event.stopPropagation()"
+    >
+
+      <!-- Header -->
+      <div class="modal-header">
+
+        <div>
+
+          <span class="modal-eyebrow">
+            PRODUCT DETAILS
+          </span>
+
+          <h3>
+            View Product
+          </h3>
+
+          <p>
+            Review product information and availability.
+          </p>
+
+        </div>
+
+
+        <button
+          type="button"
+          class="modal-close"
+          (click)="closeViewProductModal()"
+          [disabled]="loadingProduct"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <!-- Loading -->
+      @if (loadingProduct) {
+
+        <div class="product-details-loading">
+          Loading product details...
+        </div>
+
+      }
+
+
+      <!-- Error -->
+      @else if (viewProductError) {
+
+        <div class="modal-error">
+          {{ viewProductError }}
+        </div>
+
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeViewProductModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+
+      <!-- Product Details -->
+      @else if (selectedProduct) {
+
+        <div class="product-details-content">
+
+          <!-- Product Summary -->
+          <div class="product-profile-summary">
+
+            <div class="large-product-avatar">
+              {{ selectedProduct.name.charAt(0) }}
+            </div>
+
+            <div class="product-summary-info">
+
+              <h4>
+                {{ selectedProduct.name }}
+              </h4>
+
+              <p>
+                SKU: {{ selectedProduct.sku }}
+              </p>
+
+              <div class="profile-badges">
+
+                <span
+                  class="category-badge"
+                  [class.construction]="selectedProduct.category === 'Construction'"
+                  [class.electronics]="selectedProduct.category === 'Electronics'"
+                  [class.safety]="selectedProduct.category === 'Safety Equipment'"
+                >
+                  {{ selectedProduct.category }}
+                </span>
+
+
+                <span
+                  class="status-badge"
+                  [class.active]="selectedProduct.status === 'ACTIVE'"
+                  [class.inactive]="selectedProduct.status === 'INACTIVE'"
+                  [class.pending]="selectedProduct.status === 'PENDING'"
+                  [class.discontinued]="selectedProduct.status === 'DISCONTINUED'"
+                >
+                  {{ selectedProduct.status }}
+                </span>
+
+              </div>
+
+            </div>
+
+          </div>
+
+
+          <!-- Product Information -->
+          <div class="details-section">
+
+            <h4>
+              Product Information
+            </h4>
+
+            <div class="details-grid">
+
+              <!-- Product ID -->
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Product ID
+                </span>
+
+                <strong>
+                  {{ selectedProduct.id }}
+                </strong>
+
+              </div>
+
+
+              <!-- SKU -->
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  SKU
+                </span>
+
+                <strong>
+                  {{ selectedProduct.sku }}
+                </strong>
+
+              </div>
+
+
+              <!-- Category -->
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Category
+                </span>
+
+                <strong>
+                  {{ selectedProduct.category }}
+                </strong>
+
+              </div>
+
+
+              <!-- Organization -->
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Organization
+                </span>
+
+                <strong>
+                  {{ selectedProduct.organizationName || 'Independent' }}
+                </strong>
+
+              </div>
+
+
+              <!-- Unit Price -->
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Unit Price
+                </span>
+
+                <strong>
+                  KES {{ selectedProduct.unitPrice || 0 | number:'1.0-2' }}
+                </strong>
+
+              </div>
+
+
+              <!-- Stock -->
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Current Stock
+                </span>
+
+                <strong>
+                  {{ selectedProduct.stockQuantity || 0 }}
+                </strong>
+
+              </div>
+
+
+              <!-- Approval Status -->
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Status
+                </span>
+
+                <strong>
+                  {{ selectedProduct.status }}
+                </strong>
+
+              </div>
+
+
+              <!-- Created -->
+              <div class="detail-item">
+
+                <span class="detail-label">
+                  Created
+                </span>
+
+                <strong>
+                  {{ selectedProduct.createdAt || 'Not available' }}
+                </strong>
+
+              </div>
+
+            </div>
+
+
+            <!-- Description -->
+            @if (selectedProduct.description) {
+
+              <div class="description-box">
+
+                <span class="detail-label">
+                  Description
+                </span>
+
+                <p>
+                  {{ selectedProduct.description }}
+                </p>
+
+              </div>
+
+            }
+
+          </div>
+
+        </div>
+
+
+        <!-- Close -->
+        <div class="modal-actions">
+
+          <button
+            type="button"
+            class="cancel-button"
+            (click)="closeViewProductModal()"
+          >
+            Close
+          </button>
+
+        </div>
+
+      }
+
+    </div>
+
+  </div>
+
+}
