@@ -318,6 +318,19 @@
           </strong>
         </div>
 
+        <label class="form-field" *ngIf="!selectedVehicle.cargoVolumeM3">
+          <span>Cargo volume (m³)</span>
+          <input type="number" name="volumeDraft" [(ngModel)]="volumeDraft" min="0.1" step="0.1" />
+        </label>
+        <button
+          *ngIf="!selectedVehicle.cargoVolumeM3"
+          class="secondary-button"
+          type="button"
+          (click)="saveVehicleVolume()"
+        >
+          Save volume
+        </button>
+
         <p class="capacity-error" *ngIf="capacityWarning">
           {{ capacityWarning }}
         </p>
