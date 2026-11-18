@@ -71,6 +71,7 @@ export class FleetManagement {
     this.fleetService.getVehicles().subscribe({
       next: vehicles => {
         this.vehicles = vehicles;
+        this.applyOrganizationNames();
       },
       error: () => {
         this.errorMessage = 'Unable to load vehicles. Please try again.';
@@ -81,10 +82,10 @@ export class FleetManagement {
   private loadOrganizations(): void {
     this.organizationService.getBusinessOrganizations().subscribe({
       next: organizations => {
-        this.organizations = organizations.filter(organization =>
-          organization.type === 'MANUFACTURER' ||
-          organization.type === 'DISTRIBUTOR'
+        this.organizations = organizations.filter(
+          organization => organization.type === 'DISTRIBUTOR'
         );
+        this.applyOrganizationNames();
       },
       error: () => {
         this.errorMessage = 'Unable to load organizations. Please try again.';
@@ -112,7 +113,7 @@ export class FleetManagement {
         vehicle.registrationNumber.toLowerCase().includes(query) ||
         vehicle.make.toLowerCase().includes(query) ||
         vehicle.model.toLowerCase().includes(query) ||
-        vehicle.ownerOrganizationName.toLowerCase().includes(query) ||
+        (vehicle.ownerOrganizationName ?? '').toLowerCase().includes(query) ||
         (vehicle.assignedDriverName ?? '').toLowerCase().includes(query);
 
       return matchesQuery;
@@ -189,7 +190,7 @@ export class FleetManagement {
     );
 
     if (!organization) {
-      this.errorMessage = 'Select a vehicle owner organization.';
+      this.errorMessage = 'Select a distributor organization.';
       return;
     }
 
@@ -300,5 +301,26 @@ export class FleetManagement {
 
   trackByVehicleId(_index: number, vehicle: Vehicle): string {
     return vehicle.id;
+  }
+
+  private applyOrganizationNames(): void {
+    if (this.organizations.length === 0) {
+      return;
+    }
+
+    const names = new Map(
+      this.organizations.map(organization => [organization.id, organization.name])
+    );
+    this.vehicles = this.vehicles.map(vehicle => ({
+      ...vehicle,
+      ownerOrganizationName:
+        names.get(vehicle.ownerOrganizationId) || vehicle.ownerOrganizationName
+    }));
+
+    if (this.selectedVehicle) {
+      this.selectedVehicle = this.vehicles.find(
+        vehicle => vehicle.id === this.selectedVehicle?.id
+      ) ?? this.selectedVehicle;
+    }
   }
 }
