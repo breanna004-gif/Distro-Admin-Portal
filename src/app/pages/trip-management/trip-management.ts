@@ -9,6 +9,7 @@ import { Shipment } from '../../models/shipment.model';
 import { Driver } from '../../models/driver.model';
 
 import { TripManagementService } from '../../services/trip-management.service';
+import { HttpErrorResponse } from '@angular/common/http';
 import { FleetManagementService } from '../../services/fleet-management.service';
 import { ShipmentManagementService } from '../../services/shipment-management.service';
 import { DriverManagementService } from '../../services/driver-management.service';
@@ -506,13 +507,9 @@ export class TripManagement implements OnInit {
     );
 
     this.tripService.createTrip({
-      status: 'PLANNED',
       vehicleId: vehicle.id,
-      vehicleRegistration: vehicle.registrationNumber,
       driverId: driver.id,
-      driverName: driver.fullName,
-      shipmentReferences,
-      stops: this.buildStops(),
+      shipmentIds: [...this.form.shipmentIds],
       plannedStart: this.form.plannedStart,
       plannedEnd: this.form.plannedEnd,
       distanceKm: Math.max(
@@ -523,13 +520,22 @@ export class TripManagement implements OnInit {
         `Draft created for ${shipmentReferences.length} shipment(s).`
     }).subscribe({
       next: trip => {
+        const saved = {
+          ...trip,
+          vehicleRegistration: vehicle.registrationNumber,
+          driverName: driver.fullName,
+          shipmentReferences
+        };
         this.loadTrips();
         this.showCreateForm = false;
-        this.selectedTrip = trip;
+        this.selectedTrip = saved;
         this.feedbackMessage = '';
       },
-      error: () => {
-        this.feedbackMessage = 'Unable to create trip. Please try again.';
+      error: (error: HttpErrorResponse) => {
+        const message = error.error?.message;
+        this.feedbackMessage = typeof message === 'string' && message.trim()
+          ? message
+          : 'Unable to create trip. Please try again.';
       }
     });
   }
