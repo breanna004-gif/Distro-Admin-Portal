@@ -30,6 +30,7 @@ export class TripManagement implements OnInit {
   selectedTrip: Trip | null = null;
   showCreateForm = false;
   feedbackMessage = '';
+  volumeDraft: number | null = null;
 
   form = {
     vehicleId: '',
@@ -146,11 +147,50 @@ export class TripManagement implements OnInit {
       return 'Selected shipments exceed the vehicle weight capacity.';
     }
 
+    if (!vehicle.cargoVolumeM3) {
+      return 'This vehicle has no cargo volume saved. Enter the volume from registration.';
+    }
+
     if (this.selectedTotalVolumeM3 > vehicle.cargoVolumeM3) {
       return 'Selected shipments exceed the vehicle cargo volume.';
     }
 
     return '';
+  }
+
+  saveVehicleVolume(): void {
+    const vehicle = this.selectedVehicle;
+    const volume = Number(this.volumeDraft);
+
+    if (!vehicle) {
+      return;
+    }
+
+    if (!Number.isFinite(volume) || volume <= 0) {
+      this.feedbackMessage = 'Enter a cargo volume greater than 0.';
+      return;
+    }
+
+    this.fleetService.updateCargoVolume(vehicle.id, volume).subscribe({
+      next: updated => {
+        const savedVolume = updated.cargoVolumeM3 > 0 ? updated.cargoVolumeM3 : volume;
+        this.vehicles = this.vehicles.map(item =>
+          item.id === vehicle.id
+            ? {
+                ...item,
+                ...updated,
+                cargoVolumeM3: savedVolume,
+                ownerOrganizationName: item.ownerOrganizationName || updated.ownerOrganizationName
+              }
+            : item
+        );
+        this.volumeDraft = savedVolume;
+        this.feedbackMessage = '';
+      },
+      error: () => {
+        this.feedbackMessage = 'The cargo volume could not be saved.';
+      }
+    });
   }
 
   get cargoCompatibilityWarning(): string {
