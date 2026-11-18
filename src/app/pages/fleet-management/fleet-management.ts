@@ -39,6 +39,7 @@ export class FleetManagement {
   readonly cargoOptions: CargoCategory[] = this.fleetService.getCargoCategories();
 
   form = this.emptyForm();
+  volumeDraft = 0;
 
   constructor() {
     this.refreshVehicles();
@@ -236,8 +237,44 @@ export class FleetManagement {
 
   viewVehicle(vehicle: Vehicle): void {
     this.selectedVehicle = vehicle;
+    this.volumeDraft = vehicle.cargoVolumeM3;
     this.errorMessage = '';
     this.successMessage = '';
+  }
+
+  saveCargoVolume(): void {
+    if (!this.selectedVehicle) {
+      return;
+    }
+
+    const cargoVolumeM3 = Number(this.volumeDraft);
+    if (!Number.isFinite(cargoVolumeM3) || cargoVolumeM3 <= 0) {
+      this.errorMessage = 'Enter a cargo volume greater than 0.';
+      return;
+    }
+
+    const current = this.selectedVehicle;
+    this.fleetService.updateCargoVolume(current.id, cargoVolumeM3).subscribe({
+      next: updated => {
+        const saved = {
+          ...updated,
+          ownerOrganizationName: current.ownerOrganizationName || updated.ownerOrganizationName
+        };
+        this.vehicles = this.vehicles.map(vehicle =>
+          vehicle.id === saved.id ? saved : vehicle
+        );
+        this.selectedVehicle = saved;
+        this.volumeDraft = saved.cargoVolumeM3;
+        this.successMessage = `${saved.registrationNumber} cargo volume saved.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(
+          error,
+          'Unable to save the cargo volume.'
+        );
+      }
+    });
   }
 
   closeDetails(): void {

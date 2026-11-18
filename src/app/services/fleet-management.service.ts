@@ -21,6 +21,7 @@ interface BackendVehicle {
   model?: string | null;
   year?: number | null;
   capacityKg?: number | null;
+  capacityM3?: number | null;
   maxWeightKg?: number | null;
   cargoVolumeM3?: number | null;
   cargoCategories?: CargoCategory[] | null;
@@ -63,6 +64,7 @@ export class FleetManagementService {
         make: details.make,
         model: details.model,
         capacityKg: details.maxWeightKg,
+        capacityM3: details.cargoVolumeM3,
         organizationId: details.ownerOrganizationId
       })
       .pipe(map(vehicle => this.mapVehicle(vehicle)));
@@ -91,6 +93,12 @@ export class FleetManagementService {
       .pipe(map(vehicle => this.mapVehicle(vehicle)));
   }
 
+  updateCargoVolume(id: string, cargoVolumeM3: number): Observable<Vehicle> {
+    return this.http
+      .patch<BackendVehicle>(`${this.apiUrl}/${id}`, { capacityM3: cargoVolumeM3 })
+      .pipe(map(vehicle => this.mapVehicle(vehicle)));
+  }
+
   private mapVehicle(vehicle: BackendVehicle): Vehicle {
     const rawStatus = vehicle.status?.toUpperCase();
     const status: VehicleStatus =
@@ -116,7 +124,7 @@ export class FleetManagementService {
       ownerOrganizationId: vehicle.organizationId ?? vehicle.ownerOrganizationId ?? '',
       ownerOrganizationName: vehicle.ownerOrganizationName ?? '',
       maxWeightKg: vehicle.capacityKg ?? vehicle.maxWeightKg ?? 0,
-      cargoVolumeM3: vehicle.cargoVolumeM3 ?? 0,
+      cargoVolumeM3: Number(vehicle.capacityM3 ?? vehicle.cargoVolumeM3 ?? 0),
       cargoCategories: vehicle.cargoCategories ?? [],
       hasCompartments: vehicle.hasCompartments ?? false,
       refrigerated: vehicle.refrigerated ?? false,
