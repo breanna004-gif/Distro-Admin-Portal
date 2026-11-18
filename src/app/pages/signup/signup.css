@@ -37,21 +37,14 @@
 }
 
 .brand-icon {
-  width: 60px;
-  height: 60px;
+  width: 72px;
+  height: 72px;
   margin: 0 auto 15px;
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-}
-
-.brand-icon img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
 }
 
 .signup-header h1 {

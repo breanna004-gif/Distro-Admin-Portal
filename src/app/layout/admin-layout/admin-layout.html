@@ -1,6 +1,36 @@
 <div class="admin-container">
 
-  <app-sidebar></app-sidebar>
+  <app-sidebar
+    [sidebarOpen]="sidebarOpen"
+    (closeSidebar)="closeSidebar()"
+  ></app-sidebar>
+
+  @if (sidebarOpen) {
+    <button
+      class="sidebar-backdrop"
+      type="button"
+      aria-label="Close sidebar"
+      (click)="closeSidebar()"
+    ></button>
+  }
+
+  @if (!sidebarOpen) {
+    <button
+      class="sidebar-notch"
+      type="button"
+      aria-controls="primary-sidebar"
+      aria-expanded="false"
+      aria-label="Open sidebar"
+      title="Open sidebar"
+      (click)="toggleSidebar()"
+    >
+      <span class="oreos-icon" aria-hidden="true">
+        <span></span>
+        <span></span>
+        <span></span>
+      </span>
+    </button>
+  }
 
   <div class="main-section">
 

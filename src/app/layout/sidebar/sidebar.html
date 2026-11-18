@@ -1,16 +1,29 @@
-<aside class="sidebar">
+<aside id="primary-sidebar" class="sidebar" [class.sidebar-open]="sidebarOpen">
 
   
 <!-- Brand -->
 <div class="brand">
   <div class="brand-logo">
-    <img src="/logiflow-logo.svg" alt="" />
+    <img class="theme-logo theme-logo--light" src="/logiflow-logo-light.svg" alt="" />
+    <img class="theme-logo theme-logo--dark" src="/logiflow-logo-dark.svg" alt="" />
   </div>
 
   <div class="brand-text">
     <h2>LogiFlow</h2>
     <span>Logistics Platform</span>
   </div>
+
+  <button
+    class="sidebar-close"
+    type="button"
+    aria-label="Close sidebar"
+    title="Close sidebar"
+    (click)="closeSidebar.emit()"
+  >
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m6 6 12 12M18 6 6 18"></path>
+    </svg>
+  </button>
 </div>
 
 

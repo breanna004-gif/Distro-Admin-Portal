@@ -1,5 +1,5 @@
 
-import { Component, inject } from '@angular/core';
+import { Component, EventEmitter, HostListener, inject, Input, Output } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../services/auth';
 import { User } from '../../models/user.model';
@@ -14,6 +14,9 @@ import { User } from '../../models/user.model';
   styleUrl: './sidebar.css'
 })
 export class Sidebar {
+  @Input() sidebarOpen = false;
+  @Output() readonly closeSidebar = new EventEmitter<void>();
+
   private readonly authService = inject(AuthService);
 
   get canManageUsers(): boolean {
@@ -74,4 +77,14 @@ export class Sidebar {
   logout(): void {
     this.authService.logout();
   }
+
+  @HostListener('click', ['$event'])
+  closeAfterNavigation(event: MouseEvent): void {
+    const target = event.target;
+
+    if (target instanceof Element && target.closest('a[routerLink]')) {
+      this.closeSidebar.emit();
+    }
+  }
+
 }

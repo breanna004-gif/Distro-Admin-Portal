@@ -15,3 +15,4 @@ export function unwrapApiCollection<T>(response: ApiCollection<T>): T[] {
 
   throw new Error('The API returned an invalid collection response.');
 }
+

@@ -52,6 +52,12 @@ export class ThemeService {
       isDark
     );
 
+    const favicon = document.getElementById('app-favicon');
+    favicon?.setAttribute(
+      'href',
+      isDark ? '/logiflow-logo-dark.svg' : '/logiflow-logo-light.svg'
+    );
+
     localStorage.setItem(
       this.themeKey,
       theme

@@ -168,6 +168,25 @@
   box-sizing: border-box;
 }
 
+.theme-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.theme-logo.theme-logo--dark {
+  display: none;
+}
+
+:root[data-theme='dark'] .theme-logo--light {
+  display: none;
+}
+
+:root[data-theme='dark'] .theme-logo--dark {
+  display: block;
+}
+
 html {
   min-height: 100%;
   background: var(--page-background);
@@ -758,6 +777,14 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
 
 .page-content app-report-download .download-actions {
   justify-content: flex-end;
+}
+
+.page-content .reports-page app-report-download {
+  position: static;
+  display: block;
+  width: auto;
+  flex: 0 0 auto;
+  margin: 0;
 }
 
 /* Responsive positioning */
