@@ -211,7 +211,22 @@ export class Drivers {
   }
 
   reactivateDriver(driver: Driver): void {
-    this.updateDriverStatus(driver, 'APPROVED');
+    this.driverService.updateAccountStatus(driver.id, 'ACTIVE').subscribe({
+      next: updated => {
+        this.refreshDrivers();
+        this.selectedDriver = this.selectedDriver?.id === updated.id
+          ? updated
+          : this.selectedDriver;
+        this.successMessage = `${driver.fullName} has been reactivated.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(
+          error,
+          'Unable to update this driver.'
+        );
+      }
+    });
   }
 
   private updateDriverStatus(driver: Driver, status: DriverStatus): void {

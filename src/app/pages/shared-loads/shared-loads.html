@@ -211,8 +211,8 @@
           <div>
             <strong>Cargo compatibility review required</strong>
             <p>
-              Confirm that both cargo types can be safely transported together
-              before final approval.
+              Confirm that both cargo types can travel together. Accept marks
+              this recommendation compatible. Reject declines it.
             </p>
           </div>
         </div>
@@ -330,10 +330,10 @@
           >
             <span class="warning-symbol">!</span>
             <div>
-              <strong>Approval is not yet permitted</strong>
+              <strong>Compatibility review is still open</strong>
               <p>
-                A cargo compatibility review is required. Organization
-                responses alone cannot finalize this load.
+                Accept records this recommendation as compatible. Organization
+                responses are recorded after that review.
               </p>
             </div>
           </div>
@@ -372,7 +372,7 @@
                 class="accept-button"
                 [disabled]="
                   selected.status === 'REJECTED' ||
-                  selected.requiresCargoReview
+                  selected.status === 'CONFIRMED'
                 "
                 (click)="
                   updateConfirmation(selected, organization, 'ACCEPTED')

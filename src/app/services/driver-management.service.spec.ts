@@ -147,4 +147,46 @@ describe('DriverManagementService', () => {
       licenceNumber: 'DL-12345'
     });
   });
+
+  it('approves a driver through the platform approval route', () => {
+    let received: string | undefined;
+
+    service.updateDriverStatus('driver-1', 'APPROVED').subscribe(driver => {
+      received = driver.status;
+    });
+
+    const request = httpTesting.expectOne('/api/v1/admin/drivers/driver-1/approval');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ status: 'APPROVED' });
+    request.flush({
+      id: 'driver-1',
+      fullName: 'Alex Driver',
+      email: 'alex@example.com',
+      phoneNumber: '+254700000000',
+      status: 'ACTIVE',
+      approvalStatus: 'APPROVED',
+      nationalId: 'ID-123',
+      licenseNumber: 'DL-12345',
+      licenseExpiryDate: '2027-12-31'
+    });
+
+    expect(received).toBe('APPROVED');
+  });
+
+  it('shows a driver as pending while platform approval is still open', () => {
+    let received: string | undefined;
+
+    service.getDriverById('driver-1').subscribe(driver => {
+      received = driver.status;
+    });
+
+    httpTesting.expectOne('/api/v1/drivers/driver-1').flush({
+      id: 'driver-1',
+      fullName: 'Alex Driver',
+      status: 'ACTIVE',
+      approvalStatus: 'PENDING_REVIEW'
+    });
+
+    expect(received).toBe('PENDING');
+  });
 });

@@ -31,6 +31,9 @@ interface BackendDriver {
   created_at?: string | null;
   registeredAt?: string | null;
   notes?: string | null;
+  internalNotes?: string | null;
+  approvalStatus?: string | null;
+  driverApprovalStatus?: string | null;
   authorizations?: DriverCompanyAuthorization[] | null;
   onboarding?: Driver['onboarding'] | null;
   licenseNumber?: string | null;
@@ -49,6 +52,7 @@ interface BackendDriver {
 export class DriverManagementService {
   private readonly http = inject(HttpClient);
   private readonly apiUrl = '/api/v1/drivers';
+  private readonly approvalUrl = '/api/v1/admin/drivers';
 
   getDrivers(): Observable<Driver[]> {
     return this.http
@@ -77,6 +81,22 @@ export class DriverManagementService {
   updateDriverStatus(
     id: string,
     status: DriverStatus
+  ): Observable<Driver> {
+    if (status === 'APPROVED' || status === 'REJECTED') {
+      return this.http
+        .patch<BackendDriver>(`${this.approvalUrl}/${id}/approval`, { status })
+        .pipe(map(driver => this.mapDriver(driver)));
+    }
+
+    const accountStatus = status === 'INACTIVE' ? 'DEACTIVATED' : status;
+    return this.http
+      .patch<BackendDriver>(`${this.apiUrl}/${id}/status`, { status: accountStatus })
+      .pipe(map(driver => this.mapDriver(driver)));
+  }
+
+  updateAccountStatus(
+    id: string,
+    status: 'ACTIVE' | 'SUSPENDED' | 'DEACTIVATED'
   ): Observable<Driver> {
     return this.http
       .patch<BackendDriver>(`${this.apiUrl}/${id}/status`, { status })
@@ -120,14 +140,20 @@ export class DriverManagementService {
     }
 
     const user = driver.user ?? {};
-    const status = driver.status?.toUpperCase();
+    const accountStatus = driver.status?.toUpperCase();
+    const approvalStatus = (
+      driver.approvalStatus ?? driver.driverApprovalStatus ?? ''
+    ).toUpperCase();
     const normalizedStatus: DriverStatus =
-      status === 'APPROVED' ||
-      status === 'REJECTED' ||
-      status === 'SUSPENDED' ||
-      status === 'INACTIVE'
-        ? status
-        : 'PENDING';
+      accountStatus === 'SUSPENDED'
+        ? 'SUSPENDED'
+        : accountStatus === 'DEACTIVATED' || accountStatus === 'INACTIVE'
+          ? 'INACTIVE'
+          : approvalStatus === 'APPROVED' || accountStatus === 'APPROVED'
+            ? 'APPROVED'
+            : approvalStatus === 'REJECTED' || accountStatus === 'REJECTED'
+              ? 'REJECTED'
+              : 'PENDING';
 
     return {
       id: driver.id ?? user.id ?? '',
@@ -140,7 +166,7 @@ export class DriverManagementService {
       status: normalizedStatus,
       createdAt: driver.createdAt ?? driver.created_at ??
         driver.registeredAt ?? '',
-      notes: driver.notes ?? '',
+      notes: driver.notes ?? driver.internalNotes ?? '',
       authorizations: Array.isArray(driver.authorizations)
         ? driver.authorizations
         : [],

@@ -355,6 +355,7 @@ export class Organizations implements OnInit {
 
     void this.router.navigate(['/invite-user'], {
       queryParams: {
+        organizationId: organization.id,
         organizationName: organization.name,
         organizationType: organization.type
       }
