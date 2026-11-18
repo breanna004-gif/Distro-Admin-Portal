@@ -60,6 +60,7 @@ describe('FleetManagementService', () => {
       make: 'Isuzu',
       model: 'FVR',
       capacityKg: 5000,
+      capacityM3: 20,
       organizationId: 'org-1'
     });
     request.flush({
@@ -70,6 +71,7 @@ describe('FleetManagementService', () => {
       make: 'Isuzu',
       model: 'FVR',
       capacityKg: 5000,
+      capacityM3: 20,
       status: 'ACTIVE',
       createdAt: '2026-11-18T00:00:00Z'
     });
@@ -79,6 +81,7 @@ describe('FleetManagementService', () => {
       ownerOrganizationId: 'org-1',
       type: 'MEDIUM_TRUCK',
       maxWeightKg: 5000,
+      cargoVolumeM3: 20,
       status: 'AVAILABLE'
     });
   });

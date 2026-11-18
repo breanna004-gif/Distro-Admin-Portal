@@ -290,6 +290,11 @@
       <div class="detail-row"><span>Type</span><strong>{{ typeLabel(vehicle.type) }}</strong></div>
       <div class="detail-row"><span>Maximum weight</span><strong>{{ vehicle.maxWeightKg | number }} kg</strong></div>
       <div class="detail-row"><span>Cargo volume</span><strong>{{ vehicle.cargoVolumeM3 }} m³</strong></div>
+      <label class="form-field">
+        <span>Correct cargo volume (m³)</span>
+        <input type="number" name="volumeDraft" [(ngModel)]="volumeDraft" min="0.1" step="0.1" />
+      </label>
+      <button class="secondary-button" type="button" (click)="saveCargoVolume()">Save volume</button>
       <div class="detail-row"><span>Cargo categories</span><strong>{{ vehicle.cargoCategories.join(', ') }}</strong></div>
       <div class="detail-row"><span>Compartments</span><strong>{{ vehicle.hasCompartments ? 'Yes' : 'No' }}</strong></div>
       <div class="detail-row"><span>Refrigerated</span><strong>{{ vehicle.refrigerated ? 'Yes' : 'No' }}</strong></div>
