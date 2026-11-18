@@ -1,10 +1,11 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { InvitationService } from '../../services/invitations';
 import { AuthService } from '../../services/auth';
 import { User } from '../../models/user.model';
+import { Organization, OrganizationService } from '../../services/organization';
 
 @Component({
   selector: 'app-invite-user',
@@ -12,13 +13,15 @@ import { User } from '../../models/user.model';
   templateUrl: './invite-user.html',
   styleUrl: './invite-user.css'
 })
-export class InviteUser {
+export class InviteUser implements OnInit {
 
   private router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
   private invitationService = inject(InvitationService);
   private readonly authService = inject(AuthService);
+  private readonly organizationService = inject(OrganizationService);
+  private directory: Organization[] = [];
 
 
   // ============================================================
@@ -56,8 +59,7 @@ export class InviteUser {
 
   private readonly platformRoles = [
     { value: 'MANUFACTURER_STAFF', label: 'Manufacturer Staff' },
-    { value: 'DISTRIBUTOR_STAFF', label: 'Distributor Staff' },
-    { value: 'DRIVER', label: 'Driver' }
+    { value: 'DISTRIBUTOR_STAFF', label: 'Distributor Staff' }
   ];
 
   get roles(): { value: string; label: string }[] {
@@ -148,6 +150,38 @@ export class InviteUser {
     return this.authService.getCurrentUser();
   }
 
+  private get requestedOrganizationId(): string | null {
+    return this.route.snapshot.queryParamMap.get('organizationId');
+  }
+
+  ngOnInit(): void {
+    if (!this.isPlatformAdmin) {
+      return;
+    }
+
+    this.organizationService.getBusinessOrganizations().subscribe({
+      next: organizations => {
+        this.directory = organizations;
+      },
+      error: () => {
+        this.directory = [];
+      }
+    });
+  }
+
+  private resolveOrganizationId(organizationName: string): string | null {
+    if (this.requestedOrganizationId) {
+      return this.requestedOrganizationId;
+    }
+
+    const wanted = organizationName.trim().toLowerCase();
+    const matches = this.directory.filter(
+      organization => organization.name.trim().toLowerCase() === wanted
+    );
+
+    return matches.length === 1 ? matches[0].id : null;
+  }
+
 
   // ============================================================
   // SEND INVITATION
@@ -189,6 +223,16 @@ export class InviteUser {
       return;
     }
 
+    const organizationId = this.isPlatformAdmin
+      ? this.resolveOrganizationId(organizationName)
+      : undefined;
+
+    if (this.isPlatformAdmin && !organizationId) {
+      this.errorMessage =
+        'Enter the exact name of a manufacturer or distributor organization.';
+      return;
+    }
+
     this.organization = organizationName;
 
 
@@ -220,11 +264,11 @@ export class InviteUser {
 
       email: this.email.trim(),
 
-      phoneNumber: this.phone.trim(),
+      phoneNumber: this.phone.trim() || undefined,
 
       role: this.role,
 
-      organizationName: this.organization.trim()
+      ...(organizationId ? { organizationId } : {})
 
     };
 

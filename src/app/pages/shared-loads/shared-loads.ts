@@ -104,12 +104,20 @@ export class SharedLoads implements OnInit {
     organizationName: string,
     decision: OrganizationConfirmation
   ): void {
-    if (
-      recommendation.requiresCargoReview &&
-      decision === 'ACCEPTED'
-    ) {
-      this.feedbackMessage =
-        'Cargo compatibility review is still required. Resolve the review before confirming this shared load.';
+    if (recommendation.status === 'RECOMMENDED') {
+      this.sharedLoadsService
+        .reviewRecommendation(recommendation.id, decision === 'ACCEPTED')
+        .subscribe({
+          next: () => {
+            this.feedbackMessage = decision === 'ACCEPTED'
+              ? 'Shared load marked compatible. Each organization can now confirm.'
+              : 'Shared load rejected.';
+            this.loadRecommendations();
+          },
+          error: () => {
+            this.feedbackMessage = 'The shared-load review could not be saved.';
+          }
+        });
       return;
     }
 

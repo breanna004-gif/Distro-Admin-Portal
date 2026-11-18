@@ -7,7 +7,7 @@ export interface InviteUserRequest {
   email: string;
   phoneNumber?: string;
   role: string;
-  organizationName?: string;
+  organizationId?: string;
 }
 
 export interface InviteUserResponse {
