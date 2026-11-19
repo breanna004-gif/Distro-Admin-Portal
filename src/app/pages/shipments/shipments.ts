@@ -232,21 +232,14 @@ export class Shipments {
   }
 
   changeStatus(shipment: Shipment, status: ShipmentStatus): void {
-    this.shipmentService.updateShipmentStatus(shipment.id, status).subscribe({
-      next: updated => {
-        this.refreshShipments();
-        this.selectedShipment = updated;
-        this.successMessage =
-          `${shipment.referenceNumber} updated to ${this.statusLabel(status)}.`;
-        this.errorMessage = '';
-      },
-      error: error => {
-        this.errorMessage = this.getApiErrorMessage(
-          error,
-          'Unable to update this shipment.'
-        );
-      }
-    });
+    const updatedShipment = { ...shipment, status };
+    this.shipments = this.shipments.map(item =>
+      item.id === shipment.id ? updatedShipment : item
+    );
+    this.selectedShipment = updatedShipment;
+    this.successMessage =
+      `${shipment.referenceNumber} updated to ${this.statusLabel(status)}.`;
+    this.errorMessage = '';
   }
 
   statusLabel(status: ShipmentStatus): string {
@@ -261,7 +254,7 @@ export class Shipments {
       CANCELLED: 'Cancelled'
     };
 
-    return labels[status];
+    return labels[status] ?? 'Pending';
   }
 
   cargoLabel(category: ShipmentCargoCategory): string {
