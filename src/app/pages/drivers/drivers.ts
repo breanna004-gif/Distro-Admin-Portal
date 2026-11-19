@@ -202,6 +202,27 @@ export class Drivers {
     this.updateDriverStatus(driver, 'APPROVED');
   }
 
+  reviewProfileChange(driver: Driver, decision: 'APPROVED' | 'REJECTED'): void {
+    this.driverService.reviewProfileChange(driver.id, decision).subscribe({
+      next: updated => {
+        this.refreshDrivers();
+        this.selectedDriver = this.selectedDriver?.id === updated.id
+          ? updated
+          : this.selectedDriver;
+        this.successMessage = decision === 'APPROVED'
+          ? `${driver.fullName}'s profile change was approved.`
+          : `${driver.fullName}'s profile change was rejected.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(
+          error,
+          'Unable to review this profile change.'
+        );
+      }
+    });
+  }
+
   rejectDriver(driver: Driver): void {
     this.updateDriverStatus(driver, 'REJECTED');
   }

@@ -52,6 +52,9 @@ export interface Driver {
   phone: string;
   licenceNumber: string;
   licenceExpiry: string;
+  pendingFullName?: string;
+  pendingPhoneNumber?: string;
+  pendingLicenseNumber?: string;
   nationalId: string;
   status: DriverStatus;
   createdAt: string;
