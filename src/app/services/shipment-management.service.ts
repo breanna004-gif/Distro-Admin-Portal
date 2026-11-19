@@ -12,6 +12,10 @@ import {
 interface BackendShipment extends Partial<Shipment> {
   shipmentNumber?: string | null;
   allowSharedLoads?: boolean | null;
+  pickupLat?: number | null;
+  pickupLng?: number | null;
+  deliveryLat?: number | null;
+  deliveryLng?: number | null;
 }
 
 @Injectable({
@@ -60,6 +64,10 @@ export class ShipmentManagementService {
     return {
       ...(item as Shipment),
       referenceNumber: item.referenceNumber || item.shipmentNumber || '',
+      pickupLatitude: item.pickupLatitude ?? item.pickupLat ?? null,
+      pickupLongitude: item.pickupLongitude ?? item.pickupLng ?? null,
+      deliveryLatitude: item.deliveryLatitude ?? item.deliveryLat ?? null,
+      deliveryLongitude: item.deliveryLongitude ?? item.deliveryLng ?? null,
       sharedLoadAllowed: item.sharedLoadAllowed ?? item.allowSharedLoads ?? false,
       handlingRequirements: item.handlingRequirements ?? [],
       organizationName: item.organizationName ?? ''

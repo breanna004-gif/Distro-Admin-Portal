@@ -206,6 +206,22 @@
         </label>
         <div class="form-grid">
           <label class="form-field">
+            <span>Pickup latitude *</span>
+            <input type="number" name="pickupLatitude" [(ngModel)]="form.pickupLatitude"
+              required step="any" placeholder="-1.2921" />
+          </label>
+          <label class="form-field">
+            <span>Pickup longitude *</span>
+            <input type="number" name="pickupLongitude" [(ngModel)]="form.pickupLongitude"
+              required step="any" placeholder="36.8219" />
+          </label>
+        </div>
+        <p class="field-help">
+          In Google Maps, right-click the pickup spot and copy the two numbers.
+          The driver navigates to this pin.
+        </p>
+        <div class="form-grid">
+          <label class="form-field">
             <span>Pickup window starts *</span>
             <input type="datetime-local" name="pickupWindowStart"
               [(ngModel)]="form.pickupWindowStart" required />
@@ -225,6 +241,21 @@
           <input name="deliveryLocation" [(ngModel)]="form.deliveryLocation"
             required placeholder="e.g. Nakuru Town" />
         </label>
+        <div class="form-grid">
+          <label class="form-field">
+            <span>Drop-off latitude *</span>
+            <input type="number" name="deliveryLatitude" [(ngModel)]="form.deliveryLatitude"
+              required step="any" placeholder="-0.0917" />
+          </label>
+          <label class="form-field">
+            <span>Drop-off longitude *</span>
+            <input type="number" name="deliveryLongitude" [(ngModel)]="form.deliveryLongitude"
+              required step="any" placeholder="34.7680" />
+          </label>
+        </div>
+        <p class="field-help">
+          Right-click the drop-off spot in Google Maps and paste its latitude and longitude.
+        </p>
         <div class="form-grid">
           <label class="form-field">
             <span>Delivery window starts *</span>
@@ -294,9 +325,11 @@
 
     <section class="detail-section">
       <h3>Route and schedule</h3>
-      <div class="detail-row"><span>Pickup</span><strong>{{ shipment.pickupLocation }}</strong></div>
-      <div class="detail-row"><span>Pickup window</span><strong>{{ shipment.pickupWindowStart | date:'dd MMM, HH:mm' }} – {{ shipment.pickupWindowEnd | date:'HH:mm' }}</strong></div>
+      <div class="detail-row"><span>Pickup</span><strong>{{ shipment.pickupLocation || 'Not saved' }}</strong></div>
+      <div class="detail-row"><span>Pickup pin</span><strong>{{ shipment.pickupLatitude }}, {{ shipment.pickupLongitude }}</strong></div>
+      <div class="detail-row"><span>Pickup window</span><strong>{{ shipment.pickupWindowStart ? (shipment.pickupWindowStart | date:'dd MMM, HH:mm') : 'Not saved' }}<ng-container *ngIf="shipment.pickupWindowEnd"> – {{ shipment.pickupWindowEnd | date:'HH:mm' }}</ng-container></strong></div>
       <div class="detail-row"><span>Delivery</span><strong>{{ shipment.deliveryLocation }}</strong></div>
+      <div class="detail-row"><span>Drop-off pin</span><strong>{{ shipment.deliveryLatitude }}, {{ shipment.deliveryLongitude }}</strong></div>
       <div class="detail-row"><span>Delivery window</span><strong>{{ shipment.deliveryWindowStart | date:'dd MMM, HH:mm' }} – {{ shipment.deliveryWindowEnd | date:'HH:mm' }}</strong></div>
     </section>
 

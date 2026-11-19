@@ -55,9 +55,13 @@ export class Shipments {
       volumeM3: 5,
       handlingRequirements: ['STANDARD'] as HandlingRequirement[],
       pickupLocation: '',
+      pickupLatitude: null as number | null,
+      pickupLongitude: null as number | null,
       pickupWindowStart: '',
       pickupWindowEnd: '',
       deliveryLocation: '',
+      deliveryLatitude: null as number | null,
+      deliveryLongitude: null as number | null,
       deliveryWindowStart: '',
       deliveryWindowEnd: '',
       status: 'PENDING' as ShipmentStatus,
@@ -179,6 +183,16 @@ export class Shipments {
       return;
     }
 
+    if (!this.hasMapPin(this.form.pickupLatitude, this.form.pickupLongitude)) {
+      this.errorMessage = 'Enter the pickup pin from the map. 0, 0 is not a place.';
+      return;
+    }
+
+    if (!this.hasMapPin(this.form.deliveryLatitude, this.form.deliveryLongitude)) {
+      this.errorMessage = 'Enter the drop-off pin from the map. 0, 0 is not a place.';
+      return;
+    }
+
     this.shipmentService.registerShipment({
         organizationId: organization.id,
         organizationName: organization.name,
@@ -189,13 +203,13 @@ export class Shipments {
         volumeM3: Number(this.form.volumeM3),
         handlingRequirements: [...this.form.handlingRequirements],
         pickupLocation: this.form.pickupLocation.trim(),
-        pickupLatitude: null,
-        pickupLongitude: null,
+        pickupLatitude: Number(this.form.pickupLatitude),
+        pickupLongitude: Number(this.form.pickupLongitude),
         pickupWindowStart: this.form.pickupWindowStart,
         pickupWindowEnd: this.form.pickupWindowEnd,
         deliveryLocation: this.form.deliveryLocation.trim(),
-        deliveryLatitude: null,
-        deliveryLongitude: null,
+        deliveryLatitude: Number(this.form.deliveryLatitude),
+        deliveryLongitude: Number(this.form.deliveryLongitude),
         deliveryWindowStart: this.form.deliveryWindowStart,
         deliveryWindowEnd: this.form.deliveryWindowEnd,
         status: this.form.status,
@@ -281,6 +295,18 @@ export class Shipments {
     }
 
     return fallback;
+  }
+
+  private hasMapPin(latitude: number | null, longitude: number | null): boolean {
+    if (latitude == null || longitude == null) {
+      return false;
+    }
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    return Number.isFinite(lat) && Number.isFinite(lng)
+      && lat >= -90 && lat <= 90
+      && lng >= -180 && lng <= 180
+      && !(lat === 0 && lng === 0);
   }
 
   trackByShipmentId(_index: number, shipment: Shipment): string {
