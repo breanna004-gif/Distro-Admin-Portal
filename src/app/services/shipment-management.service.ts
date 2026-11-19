@@ -9,6 +9,11 @@ import {
   ShipmentStatus
 } from '../models/shipment.model';
 
+interface BackendShipment extends Partial<Shipment> {
+  shipmentNumber?: string | null;
+  allowSharedLoads?: boolean | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -18,12 +23,14 @@ export class ShipmentManagementService {
 
   getShipments(): Observable<Shipment[]> {
     return this.http
-      .get<ApiCollection<Shipment>>(this.apiUrl)
-      .pipe(map(unwrapApiCollection));
+      .get<ApiCollection<BackendShipment>>(this.apiUrl)
+      .pipe(map(response => unwrapApiCollection(response).map(item => this.mapShipment(item))));
   }
 
   getShipmentById(id: string): Observable<Shipment> {
-    return this.http.get<Shipment>(`${this.apiUrl}/${id}`);
+    return this.http
+      .get<BackendShipment>(`${this.apiUrl}/${id}`)
+      .pipe(map(item => this.mapShipment(item)));
   }
 
   registerShipment(
@@ -36,7 +43,19 @@ export class ShipmentManagementService {
     id: string,
     status: ShipmentStatus
   ): Observable<Shipment> {
-    return this.http.patch<Shipment>(`${this.apiUrl}/${id}/status`, { status });
+    return this.http
+      .patch<BackendShipment>(`${this.apiUrl}/${id}/status`, { status })
+      .pipe(map(item => this.mapShipment(item)));
+  }
+
+  private mapShipment(item: BackendShipment): Shipment {
+    return {
+      ...(item as Shipment),
+      referenceNumber: item.referenceNumber || item.shipmentNumber || '',
+      sharedLoadAllowed: item.sharedLoadAllowed ?? item.allowSharedLoads ?? false,
+      handlingRequirements: item.handlingRequirements ?? [],
+      organizationName: item.organizationName ?? ''
+    };
   }
 
   getCargoCategories(): ShipmentCargoCategory[] {

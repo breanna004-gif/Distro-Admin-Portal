@@ -114,12 +114,12 @@ export class Shipments {
 
   get awaitingDispatch(): number {
     return this.shipments.filter(s =>
-      ['PENDING', 'READY', 'MATCHED'].includes(s.status)
+      s.status === 'PENDING' || s.status === 'READY' || s.status === 'ASSIGNED'
     ).length;
   }
 
   get inTransit(): number {
-    return this.shipments.filter(s => s.status === 'IN_TRANSIT' || s.status === 'DISPATCHED').length;
+    return this.shipments.filter(s => s.status === 'IN_TRANSIT').length;
   }
 
   get delivered(): number {
@@ -253,11 +253,11 @@ export class Shipments {
     const labels: Record<ShipmentStatus, string> = {
       DRAFT: 'Draft',
       PENDING: 'Pending',
-      READY: 'Ready for dispatch',
-      MATCHED: 'Shared-load matched',
-      DISPATCHED: 'Dispatched',
+      READY: 'Ready for a trip',
+      ASSIGNED: 'Assigned to a trip',
       IN_TRANSIT: 'In transit',
       DELIVERED: 'Delivered',
+      FAILED: 'Failed',
       CANCELLED: 'Cancelled'
     };
 
