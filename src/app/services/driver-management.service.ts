@@ -112,6 +112,12 @@ export class DriverManagementService {
       .pipe(map(driver => this.mapDriver(driver)));
   }
 
+  sendLoginEmail(id: string): Observable<Driver> {
+    return this.http
+      .post<BackendDriver>(`${this.approvalUrl}/${id}/login-email`, {})
+      .pipe(map(driver => this.mapDriver(driver)));
+  }
+
   requestCompanyAuthorization(
     driverId: string,
     authorization: Omit<

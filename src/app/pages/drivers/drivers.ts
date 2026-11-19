@@ -163,6 +163,28 @@ export class Drivers {
     });
   }
 
+  resendLoginEmail(driver: Driver): void {
+    this.errorMessage = '';
+    this.successMessage = '';
+
+    this.driverService.sendLoginEmail(driver.id).subscribe({
+      next: updated => {
+        this.refreshDrivers();
+        this.selectedDriver = this.selectedDriver?.id === updated.id
+          ? updated
+          : this.selectedDriver;
+        this.successMessage = `A new temporary password was sent to ${driver.email}. Approval was not repeated.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(
+          error,
+          'Unable to send the driver sign-in email.'
+        );
+      }
+    });
+  }
+
   viewDriver(driver: Driver): void {
     this.selectedDriver = driver;
     this.loadingDriverDetails = true;
@@ -260,7 +282,9 @@ export class Drivers {
         const action = status === 'APPROVED' && driver.status !== 'PENDING'
           ? 'reactivated'
           : status.toLowerCase();
-        this.successMessage = `${driver.fullName} has been ${action}.`;
+        this.successMessage = status === 'APPROVED' && driver.status === 'PENDING'
+          ? `${driver.fullName} has been approved. A temporary password was sent to their email.`
+          : `${driver.fullName} has been ${action}.`;
         this.errorMessage = '';
       },
       error: error => {

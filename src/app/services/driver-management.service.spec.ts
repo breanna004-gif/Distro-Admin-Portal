@@ -148,6 +148,24 @@ describe('DriverManagementService', () => {
     });
   });
 
+  it('sends a new temporary password without repeating approval', () => {
+    service.sendLoginEmail('driver-1').subscribe();
+
+    const request = httpTesting.expectOne('/api/v1/admin/drivers/driver-1/login-email');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({});
+    request.flush({
+      id: 'driver-1',
+      fullName: 'Alex Driver',
+      email: 'alex@example.com',
+      phoneNumber: '+254700000000',
+      status: 'ACTIVE',
+      approvalStatus: 'APPROVED',
+      licenseNumber: 'DL-12345',
+      licenseExpiryDate: '2027-12-31'
+    });
+  });
+
   it('approves a driver through the platform approval route', () => {
     let received: string | undefined;
 
