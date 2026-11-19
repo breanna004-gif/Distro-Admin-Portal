@@ -173,6 +173,27 @@ describe('DriverManagementService', () => {
     expect(received).toBe('APPROVED');
   });
 
+  it('sends a driver profile change to the platform approval route', () => {
+    let received: string | undefined;
+
+    service.reviewProfileChange('driver-1', 'APPROVED').subscribe(driver => {
+      received = driver.pendingFullName;
+    });
+
+    const request = httpTesting.expectOne('/api/v1/admin/drivers/driver-1/profile-change');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ decision: 'APPROVED' });
+    request.flush({
+      id: 'driver-1',
+      fullName: 'Alex Driver',
+      status: 'ACTIVE',
+      approvalStatus: 'APPROVED',
+      pendingFullName: null
+    });
+
+    expect(received).toBe('');
+  });
+
   it('shows a driver as pending while platform approval is still open', () => {
     let received: string | undefined;
 

@@ -38,6 +38,9 @@ interface BackendDriver {
   onboarding?: Driver['onboarding'] | null;
   licenseNumber?: string | null;
   licenseExpiryDate?: string | null;
+  pendingFullName?: string | null;
+  pendingPhoneNumber?: string | null;
+  pendingLicenseNumber?: string | null;
   licenceNumber?: string | null;
   licenceExpiry?: string | null;
   driver?: BackendDriver | null;
@@ -122,6 +125,15 @@ export class DriverManagementService {
     );
   }
 
+  reviewProfileChange(
+    driverId: string,
+    decision: 'APPROVED' | 'REJECTED'
+  ): Observable<Driver> {
+    return this.http
+      .patch<BackendDriver>(`${this.approvalUrl}/${driverId}/profile-change`, { decision })
+      .pipe(map(driver => this.mapDriver(driver)));
+  }
+
   updateCompanyAuthorization(
     driverId: string,
     organizationId: string,
@@ -176,7 +188,10 @@ export class DriverManagementService {
         emailDeliveryStatus: 'NOT_REQUESTED'
       },
       licenceNumber: driver.licenseNumber ?? driver.licenceNumber ?? '',
-      licenceExpiry: driver.licenseExpiryDate ?? driver.licenceExpiry ?? ''
+      licenceExpiry: driver.licenseExpiryDate ?? driver.licenceExpiry ?? '',
+      pendingFullName: driver.pendingFullName ?? '',
+      pendingPhoneNumber: driver.pendingPhoneNumber ?? '',
+      pendingLicenseNumber: driver.pendingLicenseNumber ?? ''
     };
   }
 }

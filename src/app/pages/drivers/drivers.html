@@ -369,6 +369,30 @@
         <div class="detail-row"><span>Registered</span><strong>{{ driver.createdAt ? (driver.createdAt | date:'dd MMM yyyy') : '—' }}</strong></div>
       </section>
 
+      <section
+        class="detail-section"
+        *ngIf="driver.pendingFullName || driver.pendingPhoneNumber || driver.pendingLicenseNumber"
+      >
+        <h3>Profile change waiting for approval</h3>
+        <div class="detail-row" *ngIf="driver.pendingFullName">
+          <span>Requested name</span><strong>{{ driver.pendingFullName }}</strong>
+        </div>
+        <div class="detail-row" *ngIf="driver.pendingPhoneNumber">
+          <span>Requested phone</span><strong>{{ driver.pendingPhoneNumber }}</strong>
+        </div>
+        <div class="detail-row" *ngIf="driver.pendingLicenseNumber">
+          <span>Requested licence</span><strong>{{ driver.pendingLicenseNumber }}</strong>
+        </div>
+        <div class="panel-actions detail-actions">
+          <button class="danger-button" type="button" (click)="reviewProfileChange(driver, 'REJECTED')">
+            Reject change
+          </button>
+          <button class="primary-button" type="button" (click)="reviewProfileChange(driver, 'APPROVED')">
+            Approve change
+          </button>
+        </div>
+      </section>
+
       <section class="detail-section">
         <h3>Driving credentials</h3>
         <div class="detail-row"><span>Licence number</span><strong>{{ driver.licenceNumber || '—' }}</strong></div>
