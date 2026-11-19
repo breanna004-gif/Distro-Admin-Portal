@@ -3,10 +3,10 @@ export type ShipmentStatus =
   | 'DRAFT'
   | 'PENDING'
   | 'READY'
-  | 'MATCHED'
-  | 'DISPATCHED'
+  | 'ASSIGNED'
   | 'IN_TRANSIT'
   | 'DELIVERED'
+  | 'FAILED'
   | 'CANCELLED';
 
 export type ShipmentCargoCategory =

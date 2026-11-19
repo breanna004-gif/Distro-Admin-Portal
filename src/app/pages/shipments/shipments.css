@@ -375,12 +375,11 @@ tbody tr:hover td {
   background: #e5f7ee;
 }
 
-.status-matched {
+.status-assigned {
   color: #6d48b6;
   background: #f0eaff;
 }
 
-.status-dispatched,
 .status-in_transit {
   color: #2854c5;
   background: #eaf0ff;
@@ -391,6 +390,7 @@ tbody tr:hover td {
   background: #e5f7ee;
 }
 
+.status-failed,
 .status-cancelled {
   color: #b42335;
   background: #ffebed;
@@ -680,17 +680,17 @@ body.dark-mode .shipments-page .shared-yes {
   background: #0d2b1c;
 }
 
-body.dark-mode .shipments-page .status-matched {
+body.dark-mode .shipments-page .status-assigned {
   color: #c4b5fd;
   background: #2a2045;
 }
 
-body.dark-mode .shipments-page .status-dispatched,
 body.dark-mode .shipments-page .status-in_transit {
   color: #93b4ff;
   background: #172b52;
 }
 
+body.dark-mode .shipments-page .status-failed,
 body.dark-mode .shipments-page .status-cancelled {
   color: #f87171;
   background: #321416;

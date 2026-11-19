@@ -29,7 +29,7 @@
     <article class="stat-card">
       <span class="stat-label">Awaiting dispatch</span>
       <div class="stat-value">{{ awaitingDispatch }}</div>
-      <p>Pending, ready or matched</p>
+      <p>Pending, ready, or assigned to a trip</p>
     </article>
     <article class="stat-card">
       <span class="stat-label">In transit</span>
@@ -310,24 +310,23 @@
     <section class="detail-section">
       <h3>Update shipment status</h3>
       <div class="status-actions">
-        <button *ngIf="shipment.status === 'PENDING'" class="secondary-button"
-          type="button" (click)="changeStatus(shipment, 'READY')">Mark ready</button>
-        <button *ngIf="shipment.status === 'READY'" class="secondary-button"
-          type="button" (click)="changeStatus(shipment, 'MATCHED')">Mark matched</button>
-        <button *ngIf="shipment.status === 'READY' || shipment.status === 'MATCHED'"
-          class="primary-button" type="button"
-          (click)="changeStatus(shipment, 'DISPATCHED')">Dispatch</button>
-        <button *ngIf="shipment.status === 'DISPATCHED'" class="secondary-button"
+        <button *ngIf="shipment.status === 'ASSIGNED'" class="primary-button"
           type="button" (click)="changeStatus(shipment, 'IN_TRANSIT')">Mark in transit</button>
+        <button *ngIf="shipment.status === 'ASSIGNED'" class="secondary-button"
+          type="button" (click)="changeStatus(shipment, 'FAILED')">Mark failed</button>
         <button *ngIf="shipment.status === 'IN_TRANSIT'" class="secondary-button"
           type="button" (click)="changeStatus(shipment, 'DELIVERED')">Mark delivered</button>
-        <button *ngIf="shipment.status === 'PENDING' || shipment.status === 'READY'"
+        <button *ngIf="shipment.status === 'IN_TRANSIT'" class="secondary-button"
+          type="button" (click)="changeStatus(shipment, 'FAILED')">Mark failed</button>
+        <button *ngIf="shipment.status === 'READY' || shipment.status === 'ASSIGNED'"
           class="danger-button" type="button"
           (click)="changeStatus(shipment, 'CANCELLED')">Cancel shipment</button>
       </div>
-      <p class="field-help">
-        Status changes are simulated in this frontend prototype.
-        Dispatch, matching and delivery confirmation will later be validated by the backend.
+      <p class="field-help" *ngIf="shipment.status === 'READY'">
+        This shipment is not on a trip yet. Create a trip with it before it can go in transit.
+      </p>
+      <p class="field-help" *ngIf="shipment.status === 'ASSIGNED'">
+        Mark in transit only after the assigned trip has started.
       </p>
     </section>
   </section>
