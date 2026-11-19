@@ -89,9 +89,10 @@
     <div class="review-note">
       <strong>Next steps for the driver</strong>
       <p>
-        The driver should open the existing LogiFlow mobile app and sign in
-        using the temporary credentials delivered through the configured
-        channels. The app must require a password change before normal access.
+        Approving this driver emails a temporary password. They open the
+        MyDistro app, choose Driver, and sign in with that email and password,
+        then change it from their profile. Resend login email on the driver
+        profile sends a new password without approving them again.
       </p>
     </div>
 
@@ -487,7 +488,16 @@
   </div>
 
   <button
-    *ngIf="driver.onboarding.status !== 'ACTIVATED'
+    *ngIf="driver.status === 'APPROVED'"
+    class="secondary-button resend-invitation-button"
+    type="button"
+    (click)="resendLoginEmail(driver)"
+  >
+    Resend login email
+  </button>
+  <button
+    *ngIf="driver.status !== 'APPROVED'
+      && driver.onboarding.status !== 'ACTIVATED'
       && driver.onboarding.status !== 'REVOKED'
       && driver.status !== 'SUSPENDED'
       && driver.status !== 'REJECTED'"
