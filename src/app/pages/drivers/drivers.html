@@ -89,9 +89,10 @@
     <div class="review-note">
       <strong>Next steps for the driver</strong>
       <p>
-        The driver should open the existing LogiFlow mobile app and sign in
-        using the temporary credentials delivered through the configured
-        channels. The app must require a password change before normal access.
+        Approving this driver emails a temporary password. They open the
+        MyDistro app, choose Driver, and sign in with that email and password,
+        then change it from their profile. Send login email again on the driver
+        profile sends a new password through Brevo without approving them again.
       </p>
     </div>
 
@@ -369,6 +370,30 @@
         <div class="detail-row"><span>Registered</span><strong>{{ driver.createdAt ? (driver.createdAt | date:'dd MMM yyyy') : '—' }}</strong></div>
       </section>
 
+      <section
+        class="detail-section"
+        *ngIf="driver.pendingFullName || driver.pendingPhoneNumber || driver.pendingLicenseNumber"
+      >
+        <h3>Profile change waiting for approval</h3>
+        <div class="detail-row" *ngIf="driver.pendingFullName">
+          <span>Requested name</span><strong>{{ driver.pendingFullName }}</strong>
+        </div>
+        <div class="detail-row" *ngIf="driver.pendingPhoneNumber">
+          <span>Requested phone</span><strong>{{ driver.pendingPhoneNumber }}</strong>
+        </div>
+        <div class="detail-row" *ngIf="driver.pendingLicenseNumber">
+          <span>Requested licence</span><strong>{{ driver.pendingLicenseNumber }}</strong>
+        </div>
+        <div class="panel-actions detail-actions">
+          <button class="danger-button" type="button" (click)="reviewProfileChange(driver, 'REJECTED')">
+            Reject change
+          </button>
+          <button class="primary-button" type="button" (click)="reviewProfileChange(driver, 'APPROVED')">
+            Approve change
+          </button>
+        </div>
+      </section>
+
       <section class="detail-section">
         <h3>Driving credentials</h3>
         <div class="detail-row"><span>Licence number</span><strong>{{ driver.licenceNumber || '—' }}</strong></div>
@@ -463,7 +488,16 @@
   </div>
 
   <button
-    *ngIf="driver.onboarding.status !== 'ACTIVATED'
+    *ngIf="driver.status === 'APPROVED'"
+    class="secondary-button resend-invitation-button"
+    type="button"
+    (click)="resendLoginEmail(driver)"
+  >
+    Send login email again
+  </button>
+  <button
+    *ngIf="driver.status !== 'APPROVED'
+      && driver.onboarding.status !== 'ACTIVATED'
       && driver.onboarding.status !== 'REVOKED'
       && driver.status !== 'SUSPENDED'
       && driver.status !== 'REJECTED'"

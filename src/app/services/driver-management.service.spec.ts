@@ -148,6 +148,24 @@ describe('DriverManagementService', () => {
     });
   });
 
+  it('sends a new temporary password without repeating approval', () => {
+    service.sendLoginEmail('driver-1').subscribe();
+
+    const request = httpTesting.expectOne('/api/v1/admin/drivers/driver-1/login-email');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({});
+    request.flush({
+      id: 'driver-1',
+      fullName: 'Alex Driver',
+      email: 'alex@example.com',
+      phoneNumber: '+254700000000',
+      status: 'ACTIVE',
+      approvalStatus: 'APPROVED',
+      licenseNumber: 'DL-12345',
+      licenseExpiryDate: '2027-12-31'
+    });
+  });
+
   it('approves a driver through the platform approval route', () => {
     let received: string | undefined;
 
@@ -171,6 +189,27 @@ describe('DriverManagementService', () => {
     });
 
     expect(received).toBe('APPROVED');
+  });
+
+  it('sends a driver profile change to the platform approval route', () => {
+    let received: string | undefined;
+
+    service.reviewProfileChange('driver-1', 'APPROVED').subscribe(driver => {
+      received = driver.pendingFullName;
+    });
+
+    const request = httpTesting.expectOne('/api/v1/admin/drivers/driver-1/profile-change');
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ decision: 'APPROVED' });
+    request.flush({
+      id: 'driver-1',
+      fullName: 'Alex Driver',
+      status: 'ACTIVE',
+      approvalStatus: 'APPROVED',
+      pendingFullName: null
+    });
+
+    expect(received).toBe('');
   });
 
   it('shows a driver as pending while platform approval is still open', () => {

@@ -9,6 +9,11 @@ import {
   ShipmentStatus
 } from '../models/shipment.model';
 
+interface BackendShipment extends Partial<Shipment> {
+  shipmentNumber?: string | null;
+  allowSharedLoads?: boolean | null;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -18,26 +23,28 @@ export class ShipmentManagementService {
 
   getShipments(): Observable<Shipment[]> {
     return this.http
-      .get<ApiCollection<Shipment>>(this.apiUrl)
+      .get<ApiCollection<BackendShipment>>(this.apiUrl)
       .pipe(
-        map(response => unwrapApiCollection(response).map(shipment =>
-          this.normalizeShipment(shipment)
-        ))
+        map(response =>
+          unwrapApiCollection(response).map(item =>
+            this.normalizeShipment(this.mapShipment(item))
+          )
+        )
       );
   }
 
   getShipmentById(id: string): Observable<Shipment> {
     return this.http
-      .get<Shipment>(`${this.apiUrl}/${id}`)
-      .pipe(map(shipment => this.normalizeShipment(shipment)));
+      .get<BackendShipment>(`${this.apiUrl}/${id}`)
+      .pipe(map(item => this.normalizeShipment(this.mapShipment(item))));
   }
 
   registerShipment(
     details: Omit<Shipment, 'id' | 'referenceNumber' | 'createdAt'>
   ): Observable<Shipment> {
     return this.http
-      .post<Shipment>(this.apiUrl, details)
-      .pipe(map(shipment => this.normalizeShipment(shipment)));
+      .post<BackendShipment>(this.apiUrl, details)
+      .pipe(map(item => this.normalizeShipment(this.mapShipment(item))));
   }
 
   updateShipmentStatus(
@@ -45,8 +52,18 @@ export class ShipmentManagementService {
     status: ShipmentStatus
   ): Observable<Shipment> {
     return this.http
-      .patch<Shipment>(`${this.apiUrl}/${id}/status`, { status })
-      .pipe(map(shipment => this.normalizeShipment(shipment)));
+      .patch<BackendShipment>(`${this.apiUrl}/${id}/status`, { status })
+      .pipe(map(item => this.normalizeShipment(this.mapShipment(item))));
+  }
+
+  private mapShipment(item: BackendShipment): Shipment {
+    return {
+      ...(item as Shipment),
+      referenceNumber: item.referenceNumber || item.shipmentNumber || '',
+      sharedLoadAllowed: item.sharedLoadAllowed ?? item.allowSharedLoads ?? false,
+      handlingRequirements: item.handlingRequirements ?? [],
+      organizationName: item.organizationName ?? ''
+    };
   }
 
   private normalizeShipment(shipment: Shipment): Shipment {
@@ -58,17 +75,17 @@ export class ShipmentManagementService {
       'DRAFT',
       'PENDING',
       'READY',
-      'MATCHED',
-      'DISPATCHED',
+      'ASSIGNED',
       'IN_TRANSIT',
       'DELIVERED',
+      'FAILED',
       'CANCELLED'
     ];
 
     return {
       ...shipment,
       status: validStatuses.includes(normalizedStatus as ShipmentStatus)
-        ? normalizedStatus as ShipmentStatus
+        ? (normalizedStatus as ShipmentStatus)
         : 'PENDING'
     };
   }
