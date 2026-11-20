@@ -215,25 +215,11 @@
           </select>
         </label>
 
-        <label class="form-field">
-          <span>Planned start *</span>
-          <input
-            type="datetime-local"
-            name="plannedStart"
-            [(ngModel)]="form.plannedStart"
-            required
-          />
-        </label>
-
-        <label class="form-field">
-          <span>Planned end *</span>
-          <input
-            type="datetime-local"
-            name="plannedEnd"
-            [(ngModel)]="form.plannedEnd"
-            required
-          />
-        </label>
+        <p class="picker-description full-width" *ngIf="form.shipmentIds.length">
+          Trip time is taken from the shipment:
+          {{ form.plannedStart | date:'d MMM y, HH:mm' }} –
+          {{ form.plannedEnd | date:'d MMM y, HH:mm' }}
+        </p>
 
         <label class="form-field">
           <span>Estimated distance (km)</span>
@@ -463,6 +449,28 @@
               next iteration.
             </p>
           </ng-template>
+        </section>
+
+        <section class="detail-section" *ngIf="selected.status === 'SCHEDULED' || selected.status === 'PLANNED'">
+          <h3>Driver</h3>
+          <label class="form-field">
+            <span>Reassign driver</span>
+            <select
+              [ngModel]="replacementDriverId"
+              (ngModelChange)="replacementDriverId = $event"
+              name="replacementDriverId"
+            >
+              <option value="">Select driver</option>
+              <option *ngFor="let driver of eligibleDrivers" [value]="driver.id">
+                {{ driver.fullName }}
+              </option>
+            </select>
+          </label>
+          <button
+            type="button"
+            class="secondary-button"
+            (click)="reassignDriver(selected)"
+          >Save driver</button>
         </section>
 
         <section class="detail-section">

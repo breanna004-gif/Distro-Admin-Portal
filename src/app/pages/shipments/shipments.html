@@ -354,6 +354,9 @@
         <button *ngIf="shipment.status === 'READY' || shipment.status === 'ASSIGNED'"
           class="danger-button" type="button"
           (click)="changeStatus(shipment, 'CANCELLED')">Cancel shipment</button>
+        <button *ngIf="shipment.status !== 'IN_TRANSIT' && shipment.status !== 'DELIVERED'"
+          class="danger-button" type="button"
+          (click)="deleteShipment(shipment)">Delete shipment</button>
       </div>
       <p class="field-help" *ngIf="shipment.status === 'READY'">
         This shipment is not on a trip yet. Create a trip with it before it can go in transit.

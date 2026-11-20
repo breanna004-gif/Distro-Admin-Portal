@@ -246,14 +246,44 @@ export class Shipments {
   }
 
   changeStatus(shipment: Shipment, status: ShipmentStatus): void {
-    const updatedShipment = { ...shipment, status };
-    this.shipments = this.shipments.map(item =>
-      item.id === shipment.id ? updatedShipment : item
+    this.shipmentService.updateShipmentStatus(shipment.id, status).subscribe({
+      next: updated => {
+        this.refreshShipments();
+        this.selectedShipment = updated;
+        this.successMessage =
+          `${shipment.referenceNumber} updated to ${this.statusLabel(status)}.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(
+          error,
+          'Unable to update this shipment.'
+        );
+      }
+    });
+  }
+
+  deleteShipment(shipment: Shipment): void {
+    const confirmed = window.confirm(
+      `Delete ${shipment.referenceNumber}? This cannot be undone.`
     );
-    this.selectedShipment = updatedShipment;
-    this.successMessage =
-      `${shipment.referenceNumber} updated to ${this.statusLabel(status)}.`;
-    this.errorMessage = '';
+    if (!confirmed) {
+      return;
+    }
+    this.shipmentService.deleteShipment(shipment.id).subscribe({
+      next: () => {
+        this.shipments = this.shipments.filter(item => item.id !== shipment.id);
+        this.selectedShipment = null;
+        this.successMessage = `${shipment.referenceNumber} was deleted.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(
+          error,
+          'Unable to delete this shipment.'
+        );
+      }
+    });
   }
 
   statusLabel(status: ShipmentStatus): string {

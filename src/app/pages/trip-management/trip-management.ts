@@ -329,6 +329,8 @@ export class TripManagement implements OnInit {
     return '';
   }
 
+  replacementDriverId = '';
+
   toggleShipment(shipmentId: string, checked: boolean): void {
     if (checked) {
       if (!this.form.shipmentIds.includes(shipmentId)) {
@@ -342,6 +344,40 @@ export class TripManagement implements OnInit {
         id => id !== shipmentId
       );
     }
+    this.fillScheduleFromShipments();
+  }
+
+  private fillScheduleFromShipments(): void {
+    const selected = this.selectedShipments;
+    if (selected.length === 0) {
+      this.form.plannedStart = '';
+      this.form.plannedEnd = '';
+      return;
+    }
+
+    const starts = selected
+      .map(shipment => this.toLocalInput(shipment.pickupWindowStart || shipment.createdAt))
+      .filter(value => value);
+    const ends = selected
+      .map(shipment => this.toLocalInput(shipment.deliveryWindowEnd || shipment.createdAt))
+      .filter(value => value);
+    this.form.plannedStart = starts.sort()[0] ?? '';
+    this.form.plannedEnd = ends.sort().at(-1) ?? '';
+    if (this.form.plannedStart && this.form.plannedEnd
+        && this.form.plannedEnd <= this.form.plannedStart) {
+      const end = new Date(this.form.plannedStart);
+      end.setHours(end.getHours() + 1);
+      this.form.plannedEnd = this.toLocalInput(end.toISOString());
+    }
+  }
+
+  private toLocalInput(value: string): string {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) {
+      return '';
+    }
+    const pad = (part: number) => String(part).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 
   get filteredTrips(): Trip[] {
@@ -391,6 +427,7 @@ export class TripManagement implements OnInit {
 
   openDetails(trip: Trip): void {
     this.selectedTrip = trip;
+    this.replacementDriverId = trip.driverId;
     this.feedbackMessage = '';
   }
 
@@ -439,7 +476,7 @@ export class TripManagement implements OnInit {
 
     if (!this.form.plannedStart || !this.form.plannedEnd) {
       this.feedbackMessage =
-        'Please select both the start and end dates and times.';
+        'The selected shipment has no pickup or delivery time to use.';
       return;
     }
 
@@ -577,6 +614,34 @@ export class TripManagement implements OnInit {
         ...stop,
         sequence: index + 1
       }));
+  }
+
+  reassignDriver(trip: Trip): void {
+    if (!this.replacementDriverId) {
+      this.feedbackMessage = 'Select the driver who should take this trip.';
+      return;
+    }
+    this.tripService.assignDriver(trip.id, this.replacementDriverId).subscribe({
+      next: updated => {
+        const driver = this.eligibleDrivers.find(
+          item => item.id === this.replacementDriverId
+        );
+        const saved = {
+          ...updated,
+          driverName: driver?.fullName || updated.driverName,
+          driverId: this.replacementDriverId
+        };
+        this.trips = this.trips.map(item => item.id === trip.id ? { ...item, ...saved } : item);
+        this.selectedTrip = { ...trip, ...saved };
+        this.feedbackMessage = 'Driver updated. The trip has not started.';
+      },
+      error: (error: HttpErrorResponse) => {
+        const message = error.error?.message;
+        this.feedbackMessage = typeof message === 'string' && message.trim()
+          ? message
+          : 'Unable to change the driver.';
+      }
+    });
   }
 
   changeTripStatus(trip: Trip, status: TripStatus): void {

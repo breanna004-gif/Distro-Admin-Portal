@@ -74,6 +74,12 @@ export class TripManagementService {
     return this.http.patch<Trip>(`${this.apiUrl}/${id}/status`, { status });
   }
 
+  assignDriver(id: string, driverId: string): Observable<Trip> {
+    return this.http
+      .patch<BackendTrip>(`${this.apiUrl}/${id}/assign`, { riderId: driverId })
+      .pipe(map(trip => this.mapTrip(trip)));
+  }
+
   updateStopStatus(
     tripId: string,
     stopId: string,
