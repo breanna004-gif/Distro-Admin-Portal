@@ -74,6 +74,14 @@ export class TripManagementService {
     return this.http.patch<Trip>(`${this.apiUrl}/${id}/status`, { status });
   }
 
+  deleteTrip(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
+  deleteUnstartedTrips(): Observable<{ deleted: number }> {
+    return this.http.delete<{ deleted: number }>(`${this.apiUrl}/unstarted`);
+  }
+
   assignDriver(id: string, driverId: string): Observable<Trip> {
     return this.http
       .patch<BackendTrip>(`${this.apiUrl}/${id}/assign`, { riderId: driverId })

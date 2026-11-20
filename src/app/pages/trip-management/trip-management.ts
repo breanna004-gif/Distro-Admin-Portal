@@ -13,6 +13,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FleetManagementService } from '../../services/fleet-management.service';
 import { ShipmentManagementService } from '../../services/shipment-management.service';
 import { DriverManagementService } from '../../services/driver-management.service';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-trip-management',
@@ -47,8 +48,13 @@ export class TripManagement implements OnInit {
     private tripService: TripManagementService,
     private fleetService: FleetManagementService,
     private shipmentService: ShipmentManagementService,
-    private driverService: DriverManagementService
+    private driverService: DriverManagementService,
+    private authService: AuthService
   ) {}
+
+  get isSuperAdmin(): boolean {
+    return this.authService.isPlatformAdmin();
+  }
 
   ngOnInit(): void {
     this.loadTrips();
@@ -633,13 +639,68 @@ export class TripManagement implements OnInit {
         };
         this.trips = this.trips.map(item => item.id === trip.id ? { ...item, ...saved } : item);
         this.selectedTrip = { ...trip, ...saved };
-        this.feedbackMessage = 'Driver updated. The trip has not started.';
+        this.feedbackMessage =
+          'Driver updated. If they were on another trip that had not started, they were moved here.';
+        this.loadTrips();
       },
       error: (error: HttpErrorResponse) => {
         const message = error.error?.message;
         this.feedbackMessage = typeof message === 'string' && message.trim()
           ? message
           : 'Unable to change the driver.';
+      }
+    });
+  }
+
+  deleteTrip(trip: Trip): void {
+    const confirmed = window.confirm(
+      `Delete ${trip.referenceNumber}? It has not started. Its shipments go back to ready.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    this.tripService.deleteTrip(trip.id).subscribe({
+      next: () => {
+        this.trips = this.trips.filter(item => item.id !== trip.id);
+        if (this.selectedTrip?.id === trip.id) {
+          this.selectedTrip = null;
+        }
+        this.feedbackMessage = `${trip.referenceNumber} was deleted.`;
+      },
+      error: (error: HttpErrorResponse) => {
+        const message = error.error?.message;
+        this.feedbackMessage = typeof message === 'string' && message.trim()
+          ? message
+          : 'Unable to delete this trip.';
+      }
+    });
+  }
+
+  deleteUnstartedTrips(): void {
+    const count = this.trips.filter(
+      trip => trip.status === 'SCHEDULED' || trip.status === 'PLANNED'
+    ).length;
+    const confirmed = window.confirm(
+      count
+        ? `Delete ${count} trip${count === 1 ? '' : 's'} that ha${count === 1 ? 's' : 've'} not started? Their shipments go back to ready.`
+        : 'Delete every trip that has not started? Their shipments go back to ready.'
+    );
+    if (!confirmed) {
+      return;
+    }
+    this.tripService.deleteUnstartedTrips().subscribe({
+      next: result => {
+        this.selectedTrip = null;
+        this.loadTrips();
+        this.feedbackMessage = result.deleted === 1
+          ? '1 trip that had not started was deleted.'
+          : `${result.deleted} trips that had not started were deleted.`;
+      },
+      error: (error: HttpErrorResponse) => {
+        const message = error.error?.message;
+        this.feedbackMessage = typeof message === 'string' && message.trim()
+          ? message
+          : 'Unable to delete the trips that have not started.';
       }
     });
   }

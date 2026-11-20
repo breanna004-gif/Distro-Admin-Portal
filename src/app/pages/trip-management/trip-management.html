@@ -59,7 +59,15 @@
         <h2>Trip register</h2>
         <p>Review trip schedules, assignments, routes and progress.</p>
       </div>
-      <span class="result-count">{{ filteredTrips.length }} records</span>
+      <div class="heading-actions">
+        <button
+          *ngIf="isSuperAdmin"
+          type="button"
+          class="danger-button"
+          (click)="deleteUnstartedTrips()"
+        >Delete unstarted trips</button>
+        <span class="result-count">{{ filteredTrips.length }} records</span>
+      </div>
     </div>
 
     <div class="filter-row">
@@ -107,7 +115,7 @@
             </td>
 
             <td>
-              <span>{{ trip.driverName }}</span>
+              <span>{{ trip.driverName || 'Unassigned' }}</span>
               <small class="muted block">
                 {{ trip.driverId || 'Unassigned' }}
               </small>
@@ -214,6 +222,9 @@
             </option>
           </select>
         </label>
+        <p class="picker-description">
+          A driver already on a trip that has not started is moved onto this one.
+        </p>
 
         <p class="picker-description full-width" *ngIf="form.shipmentIds.length">
           Trip time is taken from the shipment:
@@ -510,6 +521,13 @@
               *ngIf="['PLANNED', 'SCHEDULED', 'DISPATCHED'].includes(selected.status)"
               (click)="changeTripStatus(selected, 'CANCELLED')"
             >Cancel trip</button>
+
+            <button
+              type="button"
+              class="danger-button"
+              *ngIf="isSuperAdmin && (selected.status === 'SCHEDULED' || selected.status === 'PLANNED')"
+              (click)="deleteTrip(selected)"
+            >Delete trip</button>
           </div>
           <p class="feedback-message" *ngIf="feedbackMessage">
             {{ feedbackMessage }}
