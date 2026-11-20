@@ -51,6 +51,10 @@ export class ShipmentManagementService {
       .pipe(map(item => this.normalizeShipment(this.mapShipment(item))));
   }
 
+  deleteShipment(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
+  }
+
   updateShipmentStatus(
     id: string,
     status: ShipmentStatus

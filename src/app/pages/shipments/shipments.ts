@@ -11,6 +11,7 @@ import {
   ShipmentStatus
 } from '../../models/shipment.model';
 import { ShipmentManagementService } from '../../services/shipment-management.service';
+import { LocationPinMap, PinSelection } from './location-pin-map';
 
 type ShipmentOrganization = Organization & {
   type: 'MANUFACTURER' | 'DISTRIBUTOR';
@@ -19,7 +20,7 @@ type ShipmentOrganization = Organization & {
 @Component({
   selector: 'app-shipments',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LocationPinMap],
   templateUrl: './shipments.html',
   styleUrl: './shipments.css'
 })
@@ -142,6 +143,22 @@ export class Shipments {
     this.showForm = false;
   }
 
+  applyPin(pin: PinSelection): void {
+    if (pin.kind === 'pickup') {
+      this.form.pickupLatitude = pin.latitude;
+      this.form.pickupLongitude = pin.longitude;
+      if (pin.placeName && !this.form.pickupLocation.trim()) {
+        this.form.pickupLocation = pin.placeName;
+      }
+      return;
+    }
+    this.form.deliveryLatitude = pin.latitude;
+    this.form.deliveryLongitude = pin.longitude;
+    if (pin.placeName && !this.form.deliveryLocation.trim()) {
+      this.form.deliveryLocation = pin.placeName;
+    }
+  }
+
   toggleHandling(requirement: HandlingRequirement, checked: boolean): void {
     if (checked && !this.form.handlingRequirements.includes(requirement)) {
       this.form.handlingRequirements = [
@@ -184,12 +201,12 @@ export class Shipments {
     }
 
     if (!this.hasMapPin(this.form.pickupLatitude, this.form.pickupLongitude)) {
-      this.errorMessage = 'Enter the pickup pin from the map. 0, 0 is not a place.';
+      this.errorMessage = 'Pin the pickup on the map.';
       return;
     }
 
     if (!this.hasMapPin(this.form.deliveryLatitude, this.form.deliveryLongitude)) {
-      this.errorMessage = 'Enter the drop-off pin from the map. 0, 0 is not a place.';
+      this.errorMessage = 'Pin the drop-off on the map.';
       return;
     }
 
@@ -246,14 +263,44 @@ export class Shipments {
   }
 
   changeStatus(shipment: Shipment, status: ShipmentStatus): void {
-    const updatedShipment = { ...shipment, status };
-    this.shipments = this.shipments.map(item =>
-      item.id === shipment.id ? updatedShipment : item
+    this.shipmentService.updateShipmentStatus(shipment.id, status).subscribe({
+      next: updated => {
+        this.refreshShipments();
+        this.selectedShipment = updated;
+        this.successMessage =
+          `${shipment.referenceNumber} updated to ${this.statusLabel(status)}.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(
+          error,
+          'Unable to update this shipment.'
+        );
+      }
+    });
+  }
+
+  deleteShipment(shipment: Shipment): void {
+    const confirmed = window.confirm(
+      `Delete ${shipment.referenceNumber}? This cannot be undone.`
     );
-    this.selectedShipment = updatedShipment;
-    this.successMessage =
-      `${shipment.referenceNumber} updated to ${this.statusLabel(status)}.`;
-    this.errorMessage = '';
+    if (!confirmed) {
+      return;
+    }
+    this.shipmentService.deleteShipment(shipment.id).subscribe({
+      next: () => {
+        this.shipments = this.shipments.filter(item => item.id !== shipment.id);
+        this.selectedShipment = null;
+        this.successMessage = `${shipment.referenceNumber} was deleted.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(
+          error,
+          'Unable to delete this shipment.'
+        );
+      }
+    });
   }
 
   statusLabel(status: ShipmentStatus): string {

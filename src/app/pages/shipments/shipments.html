@@ -198,28 +198,19 @@
       </section>
 
       <section class="form-section">
-        <h3>Pickup details</h3>
+        <h3>Pickup and drop-off</h3>
+        <app-location-pin-map
+          [pickupLat]="form.pickupLatitude"
+          [pickupLng]="form.pickupLongitude"
+          [dropoffLat]="form.deliveryLatitude"
+          [dropoffLng]="form.deliveryLongitude"
+          (pinned)="applyPin($event)">
+        </app-location-pin-map>
         <label class="form-field">
           <span>Pickup location *</span>
           <input name="pickupLocation" [(ngModel)]="form.pickupLocation"
-            required placeholder="e.g. Industrial Area, Nairobi" />
+            required placeholder="Filled when you pin or search" />
         </label>
-        <div class="form-grid">
-          <label class="form-field">
-            <span>Pickup latitude *</span>
-            <input type="number" name="pickupLatitude" [(ngModel)]="form.pickupLatitude"
-              required step="any" placeholder="-1.2921" />
-          </label>
-          <label class="form-field">
-            <span>Pickup longitude *</span>
-            <input type="number" name="pickupLongitude" [(ngModel)]="form.pickupLongitude"
-              required step="any" placeholder="36.8219" />
-          </label>
-        </div>
-        <p class="field-help">
-          In Google Maps, right-click the pickup spot and copy the two numbers.
-          The driver navigates to this pin.
-        </p>
         <div class="form-grid">
           <label class="form-field">
             <span>Pickup window starts *</span>
@@ -239,23 +230,8 @@
         <label class="form-field">
           <span>Delivery location *</span>
           <input name="deliveryLocation" [(ngModel)]="form.deliveryLocation"
-            required placeholder="e.g. Nakuru Town" />
+            required placeholder="Filled when you pin or search" />
         </label>
-        <div class="form-grid">
-          <label class="form-field">
-            <span>Drop-off latitude *</span>
-            <input type="number" name="deliveryLatitude" [(ngModel)]="form.deliveryLatitude"
-              required step="any" placeholder="-0.0917" />
-          </label>
-          <label class="form-field">
-            <span>Drop-off longitude *</span>
-            <input type="number" name="deliveryLongitude" [(ngModel)]="form.deliveryLongitude"
-              required step="any" placeholder="34.7680" />
-          </label>
-        </div>
-        <p class="field-help">
-          Right-click the drop-off spot in Google Maps and paste its latitude and longitude.
-        </p>
         <div class="form-grid">
           <label class="form-field">
             <span>Delivery window starts *</span>
@@ -354,6 +330,9 @@
         <button *ngIf="shipment.status === 'READY' || shipment.status === 'ASSIGNED'"
           class="danger-button" type="button"
           (click)="changeStatus(shipment, 'CANCELLED')">Cancel shipment</button>
+        <button *ngIf="shipment.status !== 'IN_TRANSIT' && shipment.status !== 'DELIVERED'"
+          class="danger-button" type="button"
+          (click)="deleteShipment(shipment)">Delete shipment</button>
       </div>
       <p class="field-help" *ngIf="shipment.status === 'READY'">
         This shipment is not on a trip yet. Create a trip with it before it can go in transit.
