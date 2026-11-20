@@ -12,6 +12,7 @@ import {
 } from '../../models/shipment.model';
 import { ShipmentManagementService } from '../../services/shipment-management.service';
 import { LocationPinMap, PinSelection } from './location-pin-map';
+import { AuthService } from '../../services/auth';
 
 type ShipmentOrganization = Organization & {
   type: 'MANUFACTURER' | 'DISTRIBUTOR';
@@ -27,6 +28,7 @@ type ShipmentOrganization = Organization & {
 export class Shipments {
   private readonly shipmentService = inject(ShipmentManagementService);
   private readonly organizationService = inject(OrganizationService);
+  private readonly authService = inject(AuthService);
 
   shipments: Shipment[] = [];
   searchTerm = '';
@@ -41,6 +43,8 @@ export class Shipments {
   organizations: ShipmentOrganization[] = [];
 
   form = this.emptyForm();
+  editingLocation = false;
+  locationDraft = this.emptyLocation();
 
   constructor() {
     this.refreshShipments();
@@ -68,6 +72,17 @@ export class Shipments {
       status: 'PENDING' as ShipmentStatus,
       sharedLoadAllowed: true,
       specialInstructions: ''
+    };
+  }
+
+  private emptyLocation() {
+    return {
+      pickupLocation: '',
+      pickupLatitude: null as number | null,
+      pickupLongitude: null as number | null,
+      deliveryLocation: '',
+      deliveryLatitude: null as number | null,
+      deliveryLongitude: null as number | null
     };
   }
 
@@ -260,6 +275,75 @@ export class Shipments {
 
   closeDetails(): void {
     this.selectedShipment = null;
+    this.editingLocation = false;
+  }
+
+  canCorrectLocation(shipment: Shipment): boolean {
+    return shipment.status !== 'DELIVERED'
+      && shipment.status !== 'CANCELLED'
+      && (this.authService.isPlatformAdmin() || this.authService.isOrganizationAdmin());
+  }
+
+  startLocationEdit(shipment: Shipment): void {
+    this.editingLocation = true;
+    this.locationDraft = {
+      pickupLocation: shipment.pickupLocation || '',
+      pickupLatitude: shipment.pickupLatitude,
+      pickupLongitude: shipment.pickupLongitude,
+      deliveryLocation: shipment.deliveryLocation || '',
+      deliveryLatitude: shipment.deliveryLatitude,
+      deliveryLongitude: shipment.deliveryLongitude
+    };
+    this.errorMessage = '';
+  }
+
+  applyLocationPin(pin: PinSelection): void {
+    if (pin.kind === 'pickup') {
+      this.locationDraft.pickupLatitude = pin.latitude;
+      this.locationDraft.pickupLongitude = pin.longitude;
+      if (pin.placeName && !this.locationDraft.pickupLocation.trim()) {
+        this.locationDraft.pickupLocation = pin.placeName;
+      }
+      return;
+    }
+    this.locationDraft.deliveryLatitude = pin.latitude;
+    this.locationDraft.deliveryLongitude = pin.longitude;
+    if (pin.placeName && !this.locationDraft.deliveryLocation.trim()) {
+      this.locationDraft.deliveryLocation = pin.placeName;
+    }
+  }
+
+  saveLocation(shipment: Shipment): void {
+    if (!this.locationDraft.pickupLocation.trim() || !this.locationDraft.deliveryLocation.trim()) {
+      this.errorMessage = 'Enter the pickup and drop-off names.';
+      return;
+    }
+    if (!this.hasMapPin(this.locationDraft.pickupLatitude, this.locationDraft.pickupLongitude)
+        || !this.hasMapPin(this.locationDraft.deliveryLatitude, this.locationDraft.deliveryLongitude)) {
+      this.errorMessage = 'Pin both the pickup and the drop-off.';
+      return;
+    }
+    this.shipmentService.updateLocation(shipment.id, {
+      pickupLocation: this.locationDraft.pickupLocation.trim(),
+      pickupLatitude: Number(this.locationDraft.pickupLatitude),
+      pickupLongitude: Number(this.locationDraft.pickupLongitude),
+      deliveryLocation: this.locationDraft.deliveryLocation.trim(),
+      deliveryLatitude: Number(this.locationDraft.deliveryLatitude),
+      deliveryLongitude: Number(this.locationDraft.deliveryLongitude)
+    }).subscribe({
+      next: updated => {
+        this.refreshShipments();
+        this.selectedShipment = updated;
+        this.editingLocation = false;
+        this.successMessage = updated.tripId
+          ? `${shipment.referenceNumber} location saved. The driver was notified in the app.`
+          : `${shipment.referenceNumber} location saved.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(error, 'Unable to correct this location.');
+      }
+    });
   }
 
   changeStatus(shipment: Shipment, status: ShipmentStatus): void {

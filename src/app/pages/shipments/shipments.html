@@ -316,6 +316,34 @@
       <p *ngIf="shipment.specialInstructions" class="notes-copy">{{ shipment.specialInstructions }}</p>
     </section>
 
+    <section class="detail-section" *ngIf="canCorrectLocation(shipment)">
+      <h3>Correct location</h3>
+      <button *ngIf="!editingLocation" class="secondary-button" type="button"
+        (click)="startLocationEdit(shipment)">Edit location</button>
+      <ng-container *ngIf="editingLocation">
+        <app-location-pin-map
+          [pickupLat]="locationDraft.pickupLatitude"
+          [pickupLng]="locationDraft.pickupLongitude"
+          [dropoffLat]="locationDraft.deliveryLatitude"
+          [dropoffLng]="locationDraft.deliveryLongitude"
+          (pinned)="applyLocationPin($event)">
+        </app-location-pin-map>
+        <label class="form-field">
+          <span>Pickup location</span>
+          <input name="editPickupLocation" [(ngModel)]="locationDraft.pickupLocation" />
+        </label>
+        <label class="form-field">
+          <span>Delivery location</span>
+          <input name="editDeliveryLocation" [(ngModel)]="locationDraft.deliveryLocation" />
+        </label>
+        <p class="field-help">The assigned driver gets this correction in the app.</p>
+        <div class="status-actions">
+          <button class="primary-button" type="button" (click)="saveLocation(shipment)">Save location</button>
+          <button class="secondary-button" type="button" (click)="editingLocation = false">Cancel</button>
+        </div>
+      </ng-container>
+    </section>
+
     <section class="detail-section">
       <h3>Update shipment status</h3>
       <div class="status-actions">

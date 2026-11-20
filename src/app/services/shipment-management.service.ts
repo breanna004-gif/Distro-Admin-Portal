@@ -55,6 +55,22 @@ export class ShipmentManagementService {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 
+  updateLocation(
+    id: string,
+    location: {
+      pickupLocation: string;
+      pickupLatitude: number;
+      pickupLongitude: number;
+      deliveryLocation: string;
+      deliveryLatitude: number;
+      deliveryLongitude: number;
+    }
+  ): Observable<Shipment> {
+    return this.http
+      .patch<BackendShipment>(`${this.apiUrl}/${id}/location`, location)
+      .pipe(map(item => this.normalizeShipment(this.mapShipment(item))));
+  }
+
   updateShipmentStatus(
     id: string,
     status: ShipmentStatus
