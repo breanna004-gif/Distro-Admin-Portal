@@ -3,6 +3,7 @@ import { of } from 'rxjs';
 import { Shipments } from './shipments';
 import { OrganizationService } from '../../services/organization';
 import { ShipmentManagementService } from '../../services/shipment-management.service';
+import { AuthService } from '../../services/auth';
 
 describe('Shipments', () => {
   let component: Shipments;
@@ -29,6 +30,13 @@ describe('Shipments', () => {
         {
           provide: OrganizationService,
           useValue: { getBusinessOrganizations: vi.fn().mockReturnValue(of([])) }
+        },
+        {
+          provide: AuthService,
+          useValue: {
+            isPlatformAdmin: () => true,
+            isOrganizationAdmin: () => false
+          }
         }
       ]
     }).compileComponents();
@@ -42,20 +50,21 @@ describe('Shipments', () => {
     expect(component).toBeTruthy();
   });
 
-  it('updates shipment status locally without calling the backend', () => {
+  it('sends a status update to the server', () => {
     const shipment = {
       id: 'shipment-1',
       referenceNumber: 'SHP-001',
       status: 'READY'
     } as Shipments['shipments'][number];
+    shipmentService.updateShipmentStatus.mockReturnValue(of({
+      ...shipment,
+      status: 'CANCELLED'
+    }));
     component.shipments = [shipment];
     component.selectedShipment = shipment;
 
-    component.changeStatus(shipment, 'DISPATCHED');
+    component.changeStatus(shipment, 'CANCELLED');
 
-    expect(component.shipments[0].status).toBe('DISPATCHED');
-    expect(component.selectedShipment?.status).toBe('DISPATCHED');
-    expect(component.errorMessage).toBe('');
-    expect(shipmentService.updateShipmentStatus).not.toHaveBeenCalled();
+    expect(shipmentService.updateShipmentStatus).toHaveBeenCalledWith('shipment-1', 'CANCELLED');
   });
 });

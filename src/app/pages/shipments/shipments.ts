@@ -11,6 +11,8 @@ import {
   ShipmentStatus
 } from '../../models/shipment.model';
 import { ShipmentManagementService } from '../../services/shipment-management.service';
+import { LocationPinMap, PinSelection } from './location-pin-map';
+import { AuthService } from '../../services/auth';
 
 type ShipmentOrganization = Organization & {
   type: 'MANUFACTURER' | 'DISTRIBUTOR';
@@ -19,13 +21,14 @@ type ShipmentOrganization = Organization & {
 @Component({
   selector: 'app-shipments',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, LocationPinMap],
   templateUrl: './shipments.html',
   styleUrl: './shipments.css'
 })
 export class Shipments {
   private readonly shipmentService = inject(ShipmentManagementService);
   private readonly organizationService = inject(OrganizationService);
+  private readonly authService = inject(AuthService);
 
   shipments: Shipment[] = [];
   searchTerm = '';
@@ -40,6 +43,8 @@ export class Shipments {
   organizations: ShipmentOrganization[] = [];
 
   form = this.emptyForm();
+  editingLocation = false;
+  locationDraft = this.emptyLocation();
 
   constructor() {
     this.refreshShipments();
@@ -67,6 +72,17 @@ export class Shipments {
       status: 'PENDING' as ShipmentStatus,
       sharedLoadAllowed: true,
       specialInstructions: ''
+    };
+  }
+
+  private emptyLocation() {
+    return {
+      pickupLocation: '',
+      pickupLatitude: null as number | null,
+      pickupLongitude: null as number | null,
+      deliveryLocation: '',
+      deliveryLatitude: null as number | null,
+      deliveryLongitude: null as number | null
     };
   }
 
@@ -142,6 +158,22 @@ export class Shipments {
     this.showForm = false;
   }
 
+  applyPin(pin: PinSelection): void {
+    if (pin.kind === 'pickup') {
+      this.form.pickupLatitude = pin.latitude;
+      this.form.pickupLongitude = pin.longitude;
+      if (pin.placeName && !this.form.pickupLocation.trim()) {
+        this.form.pickupLocation = pin.placeName;
+      }
+      return;
+    }
+    this.form.deliveryLatitude = pin.latitude;
+    this.form.deliveryLongitude = pin.longitude;
+    if (pin.placeName && !this.form.deliveryLocation.trim()) {
+      this.form.deliveryLocation = pin.placeName;
+    }
+  }
+
   toggleHandling(requirement: HandlingRequirement, checked: boolean): void {
     if (checked && !this.form.handlingRequirements.includes(requirement)) {
       this.form.handlingRequirements = [
@@ -184,12 +216,12 @@ export class Shipments {
     }
 
     if (!this.hasMapPin(this.form.pickupLatitude, this.form.pickupLongitude)) {
-      this.errorMessage = 'Enter the pickup pin from the map. 0, 0 is not a place.';
+      this.errorMessage = 'Pin the pickup on the map.';
       return;
     }
 
     if (!this.hasMapPin(this.form.deliveryLatitude, this.form.deliveryLongitude)) {
-      this.errorMessage = 'Enter the drop-off pin from the map. 0, 0 is not a place.';
+      this.errorMessage = 'Pin the drop-off on the map.';
       return;
     }
 
@@ -243,17 +275,116 @@ export class Shipments {
 
   closeDetails(): void {
     this.selectedShipment = null;
+    this.editingLocation = false;
+  }
+
+  canCorrectLocation(shipment: Shipment): boolean {
+    return shipment.status !== 'DELIVERED'
+      && shipment.status !== 'CANCELLED'
+      && (this.authService.isPlatformAdmin() || this.authService.isOrganizationAdmin());
+  }
+
+  startLocationEdit(shipment: Shipment): void {
+    this.editingLocation = true;
+    this.locationDraft = {
+      pickupLocation: shipment.pickupLocation || '',
+      pickupLatitude: shipment.pickupLatitude,
+      pickupLongitude: shipment.pickupLongitude,
+      deliveryLocation: shipment.deliveryLocation || '',
+      deliveryLatitude: shipment.deliveryLatitude,
+      deliveryLongitude: shipment.deliveryLongitude
+    };
+    this.errorMessage = '';
+  }
+
+  applyLocationPin(pin: PinSelection): void {
+    if (pin.kind === 'pickup') {
+      this.locationDraft.pickupLatitude = pin.latitude;
+      this.locationDraft.pickupLongitude = pin.longitude;
+      if (pin.placeName && !this.locationDraft.pickupLocation.trim()) {
+        this.locationDraft.pickupLocation = pin.placeName;
+      }
+      return;
+    }
+    this.locationDraft.deliveryLatitude = pin.latitude;
+    this.locationDraft.deliveryLongitude = pin.longitude;
+    if (pin.placeName && !this.locationDraft.deliveryLocation.trim()) {
+      this.locationDraft.deliveryLocation = pin.placeName;
+    }
+  }
+
+  saveLocation(shipment: Shipment): void {
+    if (!this.locationDraft.pickupLocation.trim() || !this.locationDraft.deliveryLocation.trim()) {
+      this.errorMessage = 'Enter the pickup and drop-off names.';
+      return;
+    }
+    if (!this.hasMapPin(this.locationDraft.pickupLatitude, this.locationDraft.pickupLongitude)
+        || !this.hasMapPin(this.locationDraft.deliveryLatitude, this.locationDraft.deliveryLongitude)) {
+      this.errorMessage = 'Pin both the pickup and the drop-off.';
+      return;
+    }
+    this.shipmentService.updateLocation(shipment.id, {
+      pickupLocation: this.locationDraft.pickupLocation.trim(),
+      pickupLatitude: Number(this.locationDraft.pickupLatitude),
+      pickupLongitude: Number(this.locationDraft.pickupLongitude),
+      deliveryLocation: this.locationDraft.deliveryLocation.trim(),
+      deliveryLatitude: Number(this.locationDraft.deliveryLatitude),
+      deliveryLongitude: Number(this.locationDraft.deliveryLongitude)
+    }).subscribe({
+      next: updated => {
+        this.refreshShipments();
+        this.selectedShipment = updated;
+        this.editingLocation = false;
+        this.successMessage = updated.tripId
+          ? `${shipment.referenceNumber} location saved. The driver was notified in the app.`
+          : `${shipment.referenceNumber} location saved.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(error, 'Unable to correct this location.');
+      }
+    });
   }
 
   changeStatus(shipment: Shipment, status: ShipmentStatus): void {
-    const updatedShipment = { ...shipment, status };
-    this.shipments = this.shipments.map(item =>
-      item.id === shipment.id ? updatedShipment : item
+    this.shipmentService.updateShipmentStatus(shipment.id, status).subscribe({
+      next: updated => {
+        this.refreshShipments();
+        this.selectedShipment = updated;
+        this.successMessage =
+          `${shipment.referenceNumber} updated to ${this.statusLabel(status)}.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(
+          error,
+          'Unable to update this shipment.'
+        );
+      }
+    });
+  }
+
+  deleteShipment(shipment: Shipment): void {
+    const confirmed = window.confirm(
+      `Delete ${shipment.referenceNumber}? This cannot be undone.`
     );
-    this.selectedShipment = updatedShipment;
-    this.successMessage =
-      `${shipment.referenceNumber} updated to ${this.statusLabel(status)}.`;
-    this.errorMessage = '';
+    if (!confirmed) {
+      return;
+    }
+    this.shipmentService.deleteShipment(shipment.id).subscribe({
+      next: () => {
+        this.shipments = this.shipments.filter(item => item.id !== shipment.id);
+        this.selectedShipment = null;
+        this.successMessage = `${shipment.referenceNumber} was deleted.`;
+        this.errorMessage = '';
+      },
+      error: error => {
+        this.errorMessage = this.getApiErrorMessage(
+          error,
+          'Unable to delete this shipment.'
+        );
+      }
+    });
   }
 
   statusLabel(status: ShipmentStatus): string {

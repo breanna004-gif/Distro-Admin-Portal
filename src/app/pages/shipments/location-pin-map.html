@@ -1,0 +1,34 @@
+<div class="pin-toolbar">
+  <button type="button" class="mode-button" [class.active]="mode === 'pickup'"
+    (click)="setMode('pickup')">Pickup</button>
+  <button type="button" class="mode-button" [class.active]="mode === 'dropoff'"
+    (click)="setMode('dropoff')">Drop-off</button>
+  <input
+    name="placeSearch"
+    [ngModel]="query"
+    (ngModelChange)="query = $event"
+    [ngModelOptions]="{ standalone: true }"
+    placeholder="Search a place, for example Kisumu"
+    (keydown.enter)="$event.preventDefault(); search()"
+  />
+  <button type="button" class="secondary-button" (click)="search()" [disabled]="searching">
+    {{ searching ? 'Searching' : 'Search' }}
+  </button>
+</div>
+
+<p class="pin-help" *ngIf="searchMessage">{{ searchMessage }}</p>
+<ul class="place-results" *ngIf="results.length">
+  <li *ngFor="let result of results">
+    <button type="button" (click)="choose(result)">{{ result.display_name }}</button>
+  </li>
+</ul>
+
+<div #mapHost class="pin-map" role="application" aria-label="Map for pickup and drop-off"></div>
+<p class="pin-help">
+  {{ mode === 'pickup' ? 'Click the map to set pickup.' : 'Click the map to set drop-off.' }}
+  The next click moves that pin.
+</p>
+<p class="pin-status">
+  Pickup {{ pickupLat != null ? (pickupLat | number:'1.4-4') + ', ' + (pickupLng | number:'1.4-4') : 'not set' }}
+  · Drop-off {{ dropoffLat != null ? (dropoffLat | number:'1.4-4') + ', ' + (dropoffLng | number:'1.4-4') : 'not set' }}
+</p>

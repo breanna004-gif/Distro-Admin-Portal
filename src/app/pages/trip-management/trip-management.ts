@@ -13,6 +13,7 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { FleetManagementService } from '../../services/fleet-management.service';
 import { ShipmentManagementService } from '../../services/shipment-management.service';
 import { DriverManagementService } from '../../services/driver-management.service';
+import { AuthService } from '../../services/auth';
 
 @Component({
   selector: 'app-trip-management',
@@ -47,8 +48,13 @@ export class TripManagement implements OnInit {
     private tripService: TripManagementService,
     private fleetService: FleetManagementService,
     private shipmentService: ShipmentManagementService,
-    private driverService: DriverManagementService
+    private driverService: DriverManagementService,
+    private authService: AuthService
   ) {}
+
+  get isSuperAdmin(): boolean {
+    return this.authService.isPlatformAdmin();
+  }
 
   ngOnInit(): void {
     this.loadTrips();
@@ -329,6 +335,8 @@ export class TripManagement implements OnInit {
     return '';
   }
 
+  replacementDriverId = '';
+
   toggleShipment(shipmentId: string, checked: boolean): void {
     if (checked) {
       if (!this.form.shipmentIds.includes(shipmentId)) {
@@ -342,6 +350,40 @@ export class TripManagement implements OnInit {
         id => id !== shipmentId
       );
     }
+    this.fillScheduleFromShipments();
+  }
+
+  private fillScheduleFromShipments(): void {
+    const selected = this.selectedShipments;
+    if (selected.length === 0) {
+      this.form.plannedStart = '';
+      this.form.plannedEnd = '';
+      return;
+    }
+
+    const starts = selected
+      .map(shipment => this.toLocalInput(shipment.pickupWindowStart || shipment.createdAt))
+      .filter(value => value);
+    const ends = selected
+      .map(shipment => this.toLocalInput(shipment.deliveryWindowEnd || shipment.createdAt))
+      .filter(value => value);
+    this.form.plannedStart = starts.sort()[0] ?? '';
+    this.form.plannedEnd = ends.sort().at(-1) ?? '';
+    if (this.form.plannedStart && this.form.plannedEnd
+        && this.form.plannedEnd <= this.form.plannedStart) {
+      const end = new Date(this.form.plannedStart);
+      end.setHours(end.getHours() + 1);
+      this.form.plannedEnd = this.toLocalInput(end.toISOString());
+    }
+  }
+
+  private toLocalInput(value: string): string {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime())) {
+      return '';
+    }
+    const pad = (part: number) => String(part).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
   }
 
   get filteredTrips(): Trip[] {
@@ -391,6 +433,7 @@ export class TripManagement implements OnInit {
 
   openDetails(trip: Trip): void {
     this.selectedTrip = trip;
+    this.replacementDriverId = trip.driverId;
     this.feedbackMessage = '';
   }
 
@@ -439,7 +482,7 @@ export class TripManagement implements OnInit {
 
     if (!this.form.plannedStart || !this.form.plannedEnd) {
       this.feedbackMessage =
-        'Please select both the start and end dates and times.';
+        'The selected shipment has no pickup or delivery time to use.';
       return;
     }
 
@@ -577,6 +620,89 @@ export class TripManagement implements OnInit {
         ...stop,
         sequence: index + 1
       }));
+  }
+
+  reassignDriver(trip: Trip): void {
+    if (!this.replacementDriverId) {
+      this.feedbackMessage = 'Select the driver who should take this trip.';
+      return;
+    }
+    this.tripService.assignDriver(trip.id, this.replacementDriverId).subscribe({
+      next: updated => {
+        const driver = this.eligibleDrivers.find(
+          item => item.id === this.replacementDriverId
+        );
+        const saved = {
+          ...updated,
+          driverName: driver?.fullName || updated.driverName,
+          driverId: this.replacementDriverId
+        };
+        this.trips = this.trips.map(item => item.id === trip.id ? { ...item, ...saved } : item);
+        this.selectedTrip = { ...trip, ...saved };
+        this.feedbackMessage =
+          'Driver updated. If they were on another trip that had not started, they were moved here.';
+        this.loadTrips();
+      },
+      error: (error: HttpErrorResponse) => {
+        const message = error.error?.message;
+        this.feedbackMessage = typeof message === 'string' && message.trim()
+          ? message
+          : 'Unable to change the driver.';
+      }
+    });
+  }
+
+  deleteTrip(trip: Trip): void {
+    const confirmed = window.confirm(
+      `Delete ${trip.referenceNumber}? It has not started. Its shipments go back to ready.`
+    );
+    if (!confirmed) {
+      return;
+    }
+    this.tripService.deleteTrip(trip.id).subscribe({
+      next: () => {
+        this.trips = this.trips.filter(item => item.id !== trip.id);
+        if (this.selectedTrip?.id === trip.id) {
+          this.selectedTrip = null;
+        }
+        this.feedbackMessage = `${trip.referenceNumber} was deleted.`;
+      },
+      error: (error: HttpErrorResponse) => {
+        const message = error.error?.message;
+        this.feedbackMessage = typeof message === 'string' && message.trim()
+          ? message
+          : 'Unable to delete this trip.';
+      }
+    });
+  }
+
+  deleteUnstartedTrips(): void {
+    const count = this.trips.filter(
+      trip => trip.status === 'SCHEDULED' || trip.status === 'PLANNED'
+    ).length;
+    const confirmed = window.confirm(
+      count
+        ? `Delete ${count} trip${count === 1 ? '' : 's'} that ha${count === 1 ? 's' : 've'} not started? Their shipments go back to ready.`
+        : 'Delete every trip that has not started? Their shipments go back to ready.'
+    );
+    if (!confirmed) {
+      return;
+    }
+    this.tripService.deleteUnstartedTrips().subscribe({
+      next: result => {
+        this.selectedTrip = null;
+        this.loadTrips();
+        this.feedbackMessage = result.deleted === 1
+          ? '1 trip that had not started was deleted.'
+          : `${result.deleted} trips that had not started were deleted.`;
+      },
+      error: (error: HttpErrorResponse) => {
+        const message = error.error?.message;
+        this.feedbackMessage = typeof message === 'string' && message.trim()
+          ? message
+          : 'Unable to delete the trips that have not started.';
+      }
+    });
   }
 
   changeTripStatus(trip: Trip, status: TripStatus): void {
