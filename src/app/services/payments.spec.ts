@@ -33,7 +33,7 @@ describe('PaymentsService', () => {
     service.getPayments(1, 10, 'order').subscribe();
 
     const request = httpTesting.expectOne(
-      request => request.url === '/api/v1/payments'
+      request => request.url === '/api/v1/admin/payments'
     );
 
     expect(request.request.method).toBe('GET');
@@ -51,7 +51,7 @@ describe('PaymentsService', () => {
     service.getPayment('payment-id').subscribe();
 
     const request = httpTesting.expectOne(
-      '/api/v1/payments/payment-id'
+      '/api/v1/admin/payments/payment-id'
     );
 
     expect(request.request.method).toBe('GET');
