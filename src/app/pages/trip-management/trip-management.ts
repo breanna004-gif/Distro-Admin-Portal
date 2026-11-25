@@ -649,29 +649,39 @@ export class TripManagement implements OnInit {
       this.feedbackMessage = 'Select the driver who should take this trip.';
       return;
     }
-    this.tripService.assignDriver(trip.id, this.replacementDriverId).subscribe({
-      next: updated => {
-        const driver = this.eligibleDrivers.find(
-          item => item.id === this.replacementDriverId
-        );
-        const saved = {
-          ...updated,
-          driverName: driver?.fullName || updated.driverName,
-          driverId: this.replacementDriverId
-        };
-        this.trips = this.trips.map(item => item.id === trip.id ? { ...item, ...saved } : item);
-        this.selectedTrip = { ...trip, ...saved };
-        this.feedbackMessage =
-          'Driver updated. If they were on another trip that had not started, they were moved here.';
-        this.loadTrips();
-      },
-      error: (error: HttpErrorResponse) => {
-        const message = error.error?.message;
-        this.feedbackMessage = typeof message === 'string' && message.trim()
-          ? message
-          : 'Unable to change the driver.';
-      }
-    });
+    try {
+      this.tripService
+        .assignDriver(trip.id, this.replacementDriverId, trip.vehicleId)
+        .subscribe({
+          next: updated => {
+            const driver = this.eligibleDrivers.find(
+              item => item.id === this.replacementDriverId
+            );
+            const saved = {
+              ...updated,
+              driverName: driver?.fullName || updated.driverName,
+              driverId: this.replacementDriverId
+            };
+            this.trips = this.trips.map(item =>
+              item.id === trip.id ? { ...item, ...saved } : item
+            );
+            this.selectedTrip = { ...trip, ...saved };
+            this.feedbackMessage =
+              'Driver updated. If they were on another trip that had not started, they were moved here.';
+            this.loadTrips();
+          },
+          error: (error: HttpErrorResponse) => {
+            const message = error.error?.message;
+            this.feedbackMessage =
+              typeof message === 'string' && message.trim()
+                ? message
+                : 'Unable to change the driver.';
+          }
+        });
+    } catch (error) {
+      this.feedbackMessage =
+        error instanceof Error ? error.message : 'Unable to change the driver.';
+    }
   }
 
   deleteTrip(trip: Trip): void {
