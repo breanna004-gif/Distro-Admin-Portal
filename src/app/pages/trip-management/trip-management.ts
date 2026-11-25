@@ -64,10 +64,10 @@ export class TripManagement implements OnInit {
   loadTrips(): void {
     this.tripService.getTrips().subscribe({
       next: trips => {
-        this.trips = trips;
+        this.trips = this.attachLinkedShipments(trips);
         if (this.selectedTrip) {
           this.selectedTrip =
-            trips.find(trip => trip.id === this.selectedTrip?.id) ?? null;
+            this.trips.find(trip => trip.id === this.selectedTrip?.id) ?? null;
         }
       },
       error: () => {
@@ -96,10 +96,32 @@ export class TripManagement implements OnInit {
     this.shipmentService.getShipments().subscribe({
       next: shipments => {
         this.shipments = shipments;
+        // Trip responses omit freight shipment refs; join them from the shipment list.
+        this.trips = this.attachLinkedShipments(this.trips);
+        if (this.selectedTrip) {
+          this.selectedTrip =
+            this.trips.find(trip => trip.id === this.selectedTrip?.id) ?? this.selectedTrip;
+        }
       },
       error: () => {
         this.feedbackMessage = 'Unable to load shipments. Please try again.';
       }
+    });
+  }
+
+  private attachLinkedShipments(trips: Trip[]): Trip[] {
+    if (!trips.length) {
+      return trips;
+    }
+    return trips.map(trip => {
+      const linked = this.shipments
+        .filter(shipment => shipment.tripId === trip.id)
+        .map(shipment => shipment.referenceNumber || shipment.id);
+      if (!linked.length) {
+        return trip;
+      }
+      const merged = [...new Set([...(trip.shipmentReferences ?? []), ...linked])];
+      return { ...trip, shipmentReferences: merged };
     });
   }
 
@@ -432,7 +454,7 @@ export class TripManagement implements OnInit {
   }
 
   openDetails(trip: Trip): void {
-    this.selectedTrip = trip;
+    this.selectedTrip = this.attachLinkedShipments([trip])[0];
     this.replacementDriverId = trip.driverId;
     this.feedbackMessage = '';
   }
@@ -713,17 +735,18 @@ export class TripManagement implements OnInit {
     }
 
     if (status === 'DISPATCHED') {
+      const enriched = this.attachLinkedShipments([trip])[0];
       const vehicle = this.vehicles.find(
-        item => item.id === trip.vehicleId
+        item => item.id === enriched.vehicleId
       );
 
       const driver = this.drivers.find(
-        item => item.id === trip.driverId
+        item => item.id === enriched.driverId
       );
 
-      if (!vehicle || vehicle.status !== 'AVAILABLE') {
+      if (!enriched.vehicleId || !vehicle) {
         this.feedbackMessage =
-          'The assigned vehicle must be available before dispatch.';
+          'Assign a vehicle to this trip before dispatch.';
         return;
       }
 
@@ -733,30 +756,52 @@ export class TripManagement implements OnInit {
         return;
       }
 
-      if (trip.shipmentReferences.length === 0) {
+      if (enriched.shipmentReferences.length === 0 && enriched.stops.length === 0) {
         this.feedbackMessage =
           'At least one shipment must be linked before dispatch.';
         return;
       }
 
-      if (trip.stops.length === 0) {
+      if (enriched.stops.length === 0) {
         this.feedbackMessage =
           'Pickup and delivery stops must be generated before dispatch.';
         return;
       }
+
+      this.tripService.dispatchTrip(enriched.id).subscribe({
+        next: updated => {
+          const withCargo = this.attachLinkedShipments([updated])[0];
+          this.selectedTrip = this.selectedTrip?.id === withCargo.id
+            ? withCargo
+            : this.selectedTrip;
+          this.loadTrips();
+          this.loadResources();
+          this.feedbackMessage = 'Trip dispatched. Linked shipments are now in transit.';
+        },
+        error: (error: HttpErrorResponse) => {
+          const message = error.error?.message;
+          this.feedbackMessage = typeof message === 'string' && message.trim()
+            ? message
+            : 'Unable to dispatch the trip.';
+        }
+      });
+      return;
     }
 
     this.tripService.updateTripStatus(trip.id, status).subscribe({
       next: updated => {
         this.selectedTrip = this.selectedTrip?.id === updated.id
-          ? updated
+          ? this.attachLinkedShipments([updated])[0]
           : this.selectedTrip;
         this.loadTrips();
         this.feedbackMessage =
           `Trip status updated to ${this.getStatusLabel(status)}.`;
       },
-      error: () => {
-        this.feedbackMessage = 'Unable to update trip status.';
+      error: (error: HttpErrorResponse) => {
+        const message = error.error?.message;
+        this.feedbackMessage = typeof message === 'string' && message.trim()
+          ? message
+          : 'Unable to update trip status.';
       }
     });
   }
