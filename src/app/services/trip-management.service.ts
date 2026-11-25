@@ -71,7 +71,16 @@ export class TripManagementService {
   }
 
   updateTripStatus(id: string, status: TripStatus): Observable<Trip> {
-    return this.http.patch<Trip>(`${this.apiUrl}/${id}/status`, { status });
+    return this.http
+      .patch<BackendTrip>(`${this.apiUrl}/${id}/status`, { status })
+      .pipe(map(trip => this.mapTrip(trip)));
+  }
+
+  /** Starts a scheduled trip. Backend moves it to ONGOING and marks linked freight cargo in transit. */
+  dispatchTrip(id: string): Observable<Trip> {
+    return this.http
+      .post<BackendTrip>(`${this.apiUrl}/${id}/dispatch`, {})
+      .pipe(map(trip => this.mapTrip(trip)));
   }
 
   deleteTrip(id: string): Observable<void> {
