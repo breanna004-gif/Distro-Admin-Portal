@@ -1,8 +1,44 @@
-import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { Observable, map } from 'rxjs';
 
 import { Payment } from '../models/payment.model';
+
+interface PaymentApiRow extends Partial<Payment> {
+  id: string;
+  orderId: string;
+  amount: number;
+  mpesaReceiptNumber?: string;
+  confirmedAt?: string;
+  initiatedAt?: string;
+  currency?: string;
+  method?: Payment['method'];
+  status?: string;
+  failureReason?: string;
+}
+
+function displayPayment(row: PaymentApiRow): Payment {
+  const status = row.status === 'CONFIRMED' || row.status === 'RECONCILED'
+    ? 'PAID'
+    : row.status === 'REVERSED'
+      ? 'REFUNDED'
+      : (row.status as Payment['status']);
+  return {
+    id: row.id,
+    orderId: row.orderId,
+    customerName: row.customerName ?? '',
+    organizationName: row.organizationName,
+    amount: row.amount,
+    currency: row.currency ?? 'KES',
+    method: row.method ?? 'MPESA',
+    status,
+    transactionReference: row.transactionReference ?? row.mpesaReceiptNumber,
+    paymentDate: row.paymentDate ?? row.confirmedAt ?? row.initiatedAt,
+    createdAt: row.createdAt ?? row.initiatedAt,
+    updatedAt: row.updatedAt,
+    failureReason: row.failureReason
+  };
+}
 
 export interface PaymentsPage {
   content: Payment[];
@@ -19,7 +55,7 @@ export class PaymentsService {
 
   private http = inject(HttpClient);
 
-  private readonly apiUrl = '/api/v1/payments';
+  private readonly apiUrl = '/api/v1/admin/payments';
 
 
   // ==========================================
@@ -45,9 +81,19 @@ export class PaymentsService {
 
     }
 
-    return this.http.get<PaymentsPage | Payment[]>(
+    return this.http.get<PaymentsPage | PaymentApiRow[]>(
       this.apiUrl,
       { params }
+    ).pipe(
+      map(response => {
+        if (Array.isArray(response)) {
+          return response.map(displayPayment);
+        }
+        return {
+          ...response,
+          content: (response.content ?? []).map(displayPayment)
+        };
+      })
     );
 
   }
@@ -61,9 +107,9 @@ export class PaymentsService {
     paymentId: string
   ): Observable<Payment> {
 
-    return this.http.get<Payment>(
+    return this.http.get<PaymentApiRow>(
       `${this.apiUrl}/${paymentId}`
-    );
+    ).pipe(map(displayPayment));
 
   }
 
