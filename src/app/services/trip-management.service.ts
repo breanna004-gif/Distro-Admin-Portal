@@ -91,9 +91,21 @@ export class TripManagementService {
     return this.http.delete<{ deleted: number }>(`${this.apiUrl}/unstarted`);
   }
 
-  assignDriver(id: string, driverId: string): Observable<Trip> {
+  assignDriver(id: string, driverId: string, vehicleId?: string | null): Observable<Trip> {
+    const riderId = (driverId ?? '').trim();
+    if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(riderId)) {
+      throw new Error('Select a valid driver before saving.');
+    }
+    const body: { riderId: string; vehicleId?: string; clearVehicle: boolean } = {
+      riderId,
+      clearVehicle: false,
+    };
+    const trimmedVehicle = (vehicleId ?? '').trim();
+    if (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(trimmedVehicle)) {
+      body.vehicleId = trimmedVehicle;
+    }
     return this.http
-      .patch<BackendTrip>(`${this.apiUrl}/${id}/assign`, { riderId: driverId })
+      .patch<BackendTrip>(`${this.apiUrl}/${id}/assign`, body)
       .pipe(map(trip => this.mapTrip(trip)));
   }
 
