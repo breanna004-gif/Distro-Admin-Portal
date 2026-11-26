@@ -64,7 +64,7 @@ export class TripManagement implements OnInit {
   loadTrips(): void {
     this.tripService.getTrips().subscribe({
       next: trips => {
-        this.trips = this.attachLinkedShipments(trips);
+        this.trips = this.enrichTrips(trips);
         if (this.selectedTrip) {
           this.selectedTrip =
             this.trips.find(trip => trip.id === this.selectedTrip?.id) ?? null;
@@ -80,6 +80,11 @@ export class TripManagement implements OnInit {
     this.fleetService.getVehicles().subscribe({
       next: vehicles => {
         this.vehicles = vehicles;
+        this.trips = this.enrichTrips(this.trips);
+        if (this.selectedTrip) {
+          this.selectedTrip =
+            this.trips.find(trip => trip.id === this.selectedTrip?.id) ?? this.selectedTrip;
+        }
       },
       error: () => {
         this.feedbackMessage = 'Unable to load vehicles. Please try again.';
@@ -88,6 +93,11 @@ export class TripManagement implements OnInit {
     this.driverService.getDrivers().subscribe({
       next: drivers => {
         this.drivers = drivers;
+        this.trips = this.enrichTrips(this.trips);
+        if (this.selectedTrip) {
+          this.selectedTrip =
+            this.trips.find(trip => trip.id === this.selectedTrip?.id) ?? this.selectedTrip;
+        }
       },
       error: () => {
         this.feedbackMessage = 'Unable to load drivers. Please try again.';
@@ -97,7 +107,7 @@ export class TripManagement implements OnInit {
       next: shipments => {
         this.shipments = shipments;
         // Trip responses omit freight shipment refs; join them from the shipment list.
-        this.trips = this.attachLinkedShipments(this.trips);
+        this.trips = this.enrichTrips(this.trips);
         if (this.selectedTrip) {
           this.selectedTrip =
             this.trips.find(trip => trip.id === this.selectedTrip?.id) ?? this.selectedTrip;
@@ -107,6 +117,26 @@ export class TripManagement implements OnInit {
         this.feedbackMessage = 'Unable to load shipments. Please try again.';
       }
     });
+  }
+
+  private enrichTrips(trips: Trip[]): Trip[] {
+    return this.attachLinkedShipments(trips).map(trip => this.resolveTripDisplay(trip));
+  }
+
+  private resolveTripDisplay(trip: Trip): Trip {
+    const vehicle = this.vehicles.find(item => item.id === trip.vehicleId);
+    const driver = this.drivers.find(item => item.id === trip.driverId);
+    return {
+      ...trip,
+      vehicleRegistration:
+        trip.vehicleRegistration?.trim() ||
+        vehicle?.registrationNumber ||
+        '',
+      driverName:
+        trip.driverName?.trim() ||
+        driver?.fullName ||
+        ''
+    };
   }
 
   private attachLinkedShipments(trips: Trip[]): Trip[] {
@@ -454,7 +484,7 @@ export class TripManagement implements OnInit {
   }
 
   openDetails(trip: Trip): void {
-    this.selectedTrip = this.attachLinkedShipments([trip])[0];
+    this.selectedTrip = this.enrichTrips([trip])[0];
     this.replacementDriverId = trip.driverId;
     this.feedbackMessage = '';
   }
@@ -745,7 +775,7 @@ export class TripManagement implements OnInit {
     }
 
     if (status === 'DISPATCHED') {
-      const enriched = this.attachLinkedShipments([trip])[0];
+      const enriched = this.enrichTrips([trip])[0];
       const vehicle = this.vehicles.find(
         item => item.id === enriched.vehicleId
       );
@@ -780,7 +810,7 @@ export class TripManagement implements OnInit {
 
       this.tripService.dispatchTrip(enriched.id).subscribe({
         next: updated => {
-          const withCargo = this.attachLinkedShipments([updated])[0];
+          const withCargo = this.enrichTrips([updated])[0];
           this.selectedTrip = this.selectedTrip?.id === withCargo.id
             ? withCargo
             : this.selectedTrip;
@@ -801,7 +831,7 @@ export class TripManagement implements OnInit {
     this.tripService.updateTripStatus(trip.id, status).subscribe({
       next: updated => {
         this.selectedTrip = this.selectedTrip?.id === updated.id
-          ? this.attachLinkedShipments([updated])[0]
+          ? this.enrichTrips([updated])[0]
           : this.selectedTrip;
         this.loadTrips();
         this.feedbackMessage =

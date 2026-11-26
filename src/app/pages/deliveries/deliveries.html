@@ -331,7 +331,7 @@
                   <div class="customer-cell">
 
                     <strong>
-                      {{ delivery.customerName }}
+                      {{ delivery.customerName || 'No customer' }}
                     </strong>
 
                     <span>
@@ -404,7 +404,7 @@
                   <div class="destination-cell">
 
                     <span>
-                      {{ delivery.deliveryAddress }}
+                      {{ delivery.deliveryAddress || 'No destination' }}
                     </span>
 
                   </div>
