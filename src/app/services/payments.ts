@@ -4,7 +4,7 @@ import { Observable, map } from 'rxjs';
 
 import { Payment } from '../models/payment.model';
 
-interface PaymentApiRow extends Partial<Payment> {
+interface PaymentApiRow extends Omit<Partial<Payment>, 'status'> {
   id: string;
   orderId: string;
   amount: number;
@@ -13,6 +13,7 @@ interface PaymentApiRow extends Partial<Payment> {
   initiatedAt?: string;
   currency?: string;
   method?: Payment['method'];
+  /** Backend may send CONFIRMED/RECONCILED/REVERSED before displayPayment normalizes. */
   status?: string;
   failureReason?: string;
 }
