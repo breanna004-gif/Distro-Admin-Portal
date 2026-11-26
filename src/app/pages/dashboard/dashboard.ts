@@ -10,6 +10,7 @@ import {
   catchError,
   finalize,
   forkJoin,
+  map,
   of
 } from 'rxjs';
 
@@ -24,6 +25,8 @@ import {
   OrganizationService
 } from '../../services/organization';
 import { UsersService } from '../../services/users';
+import { ProductService } from '../../services/product';
+import { TripManagementService } from '../../services/trip-management.service';
 
 interface DashboardMetrics {
   dashboard: AdminDashboardResponse | null;
@@ -31,6 +34,8 @@ interface DashboardMetrics {
   distributors: Organization[] | null;
   totalStockUnits: number | null;
   totalUsers: number | null;
+  productCount: number | null;
+  tripCount: number | null;
 }
 
 @Component({
@@ -50,6 +55,8 @@ export class Dashboard implements OnInit {
   private readonly organizationService =
     inject(OrganizationService);
   private readonly usersService = inject(UsersService);
+  private readonly productService = inject(ProductService);
+  private readonly tripManagementService = inject(TripManagementService);
 
   currentDate = '';
   currentTime = '';
@@ -107,6 +114,18 @@ export class Dashboard implements OnInit {
       totalUsers: this.withFallback(
         'users',
         this.usersService.getUserCount()
+      ),
+      productCount: this.withFallback(
+        'product catalog',
+        this.productService.getProducts(0, 1).pipe(
+          map(response => response.totalElements)
+        )
+      ),
+      tripCount: this.withFallback(
+        'trips',
+        this.tripManagementService.getTrips().pipe(
+          map(trips => trips.length)
+        )
       )
     })
       .pipe(
@@ -121,7 +140,9 @@ export class Dashboard implements OnInit {
           this.changeDetectorRef.markForCheck();
 
           const dashboardFailures = this.failedMetrics.filter(
-            metric => metric !== 'stock quantities'
+            metric =>
+              metric !== 'stock quantities' &&
+              (metric !== 'trips' || metrics.dashboard?.totalTrips == null)
           );
 
           if (dashboardFailures.length > 0) {
@@ -225,7 +246,9 @@ export class Dashboard implements OnInit {
       metrics.distributors?.length ?? 0;
 
     this.totalProducts =
-      metrics.dashboard?.totalProducts ?? 0;
+      (metrics.dashboard?.totalProducts ?? 0) > 0
+        ? metrics.dashboard!.totalProducts
+        : (metrics.productCount ?? 0);
 
     this.totalOrders =
       metrics.dashboard?.totalOrders ?? 0;
@@ -236,8 +259,10 @@ export class Dashboard implements OnInit {
     this.totalPayments =
       metrics.dashboard?.totalPayments ?? 0;
 
-    this.totalTrips =
-      metrics.dashboard?.totalTrips ?? 0;
+    this.totalTrips = Math.max(
+      metrics.dashboard?.totalTrips ?? 0,
+      metrics.tripCount ?? 0
+    );
 
     this.lowStockProducts =
       metrics.dashboard?.lowStockProducts ?? 0;

@@ -60,6 +60,7 @@ describe('OrganizationService directory endpoints', () => {
     }]);
 
     expect(received?.[0].name).toBe('Simba Cement');
+    expect(received?.[0].contactName).toBe('John Doe');
   });
 
   it('gets distributors from the distributors endpoint and unwraps paged content', () => {
@@ -72,7 +73,11 @@ describe('OrganizationService directory endpoints', () => {
     const request = httpTesting.expectOne('/api/distributors');
     expect(request.request.method).toBe('GET');
     request.flush({
-      content: [{ id: 'd-1', name: 'Northwind Distribution' }],
+      content: [{
+        id: 'd-1',
+        name: 'Northwind Distribution',
+        contactPersonName: 'Terry Manager'
+      }],
       totalElements: 1,
       totalPages: 1
     });
@@ -80,6 +85,7 @@ describe('OrganizationService directory endpoints', () => {
     expect(received).toEqual([{
       id: 'd-1',
       name: 'Northwind Distribution',
+      contactName: 'Terry Manager',
       type: 'DISTRIBUTOR'
     }]);
   });
@@ -130,5 +136,56 @@ describe('OrganizationService directory endpoints', () => {
     request.flush({ id: 'd-1', name: 'Northwind Distribution' });
 
     expect(received?.type).toBe('DISTRIBUTOR');
+  });
+
+  it('creates a manufacturer through the manufacturer endpoint', () => {
+    let received: Organization | undefined;
+    const requestBody = {
+      name: 'Northwind Manufacturing',
+      contactName: 'Terry Manager',
+      email: 'terry@northwind.example'
+    };
+
+    service.createManufacturer(requestBody).subscribe(organization => {
+      received = organization;
+    });
+
+    const request = httpTesting.expectOne('/api/manufacturers');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      ...requestBody,
+      type: 'MANUFACTURER'
+    });
+    request.flush({ id: 'm-2', organizationName: requestBody.name });
+
+    expect(received).toEqual({
+      id: 'm-2',
+      organizationName: requestBody.name,
+      name: requestBody.name,
+      type: 'MANUFACTURER'
+    });
+  });
+
+  it('creates a distributor through the distributor endpoint', () => {
+    let received: Organization | undefined;
+    const requestBody = { name: 'Northwind Distribution' };
+
+    service.createDistributor(requestBody).subscribe(organization => {
+      received = organization;
+    });
+
+    const request = httpTesting.expectOne('/api/distributors');
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({
+      ...requestBody,
+      type: 'DISTRIBUTOR'
+    });
+    request.flush({ id: 'd-2', name: requestBody.name });
+
+    expect(received).toEqual({
+      id: 'd-2',
+      name: requestBody.name,
+      type: 'DISTRIBUTOR'
+    });
   });
 });

@@ -15,7 +15,7 @@ import {
   ChartData,
   registerables
 } from 'chart.js';
-import { forkJoin, finalize } from 'rxjs';
+import { catchError, forkJoin, finalize, of } from 'rxjs';
 
 import { ReportsService } from '../../services/reports';
 import { ReportColumn, ReportRow } from '../../models/report.model';
@@ -224,7 +224,13 @@ export class Reports implements OnInit {
     forkJoin({
       overview: this.reportsService.getReportOverview(this.selectedPeriod),
       revenue: this.reportsService.getRevenueReport(this.selectedPeriod),
-      orders: this.reportsService.getOrderReport(this.selectedPeriod)
+      orders: this.reportsService.getOrderReport(this.selectedPeriod),
+      inventory: this.reportsService.getInventoryReport().pipe(
+        catchError(error => {
+          console.error('[Reports] Failed to load inventory report:', error);
+          return of(null);
+        })
+      )
     })
       .pipe(
         finalize(() => {
@@ -244,7 +250,7 @@ export class Reports implements OnInit {
               'orders'
             );
 
-            this.applyReportResponse(result.overview);
+            this.applyReportResponse(result.overview, result.inventory);
 
             this.revenueData = revenue;
             this.orderData = orders;
@@ -441,7 +447,7 @@ export class Reports implements OnInit {
     this.loadReports();
   }
 
-  applyReportResponse(response: any): void {
+  applyReportResponse(response: any, inventoryResponse: any = null): void {
     this.totalRevenue = Number(response.totalRevenue ?? 0);
     this.totalOrders = Number(response.totalOrders ?? 0);
     this.totalPayments = Number(response.totalPayments ?? 0);
@@ -451,12 +457,66 @@ export class Reports implements OnInit {
     this.totalCustomers = Number(response.totalCustomers ?? 0);
     this.totalOrganizations = Number(response.totalOrganizations ?? 0);
 
+    const inventorySources = [
+      inventoryResponse,
+      inventoryResponse?.data,
+      inventoryResponse?.summary,
+      inventoryResponse?.inventory,
+      response
+    ].filter(source =>
+      typeof source === 'object' && source !== null
+    );
+
+    const readInventoryNumber = (keys: string[]): number => {
+      for (const source of inventorySources) {
+        for (const key of keys) {
+          const value = (source as Record<string, unknown>)[key];
+          if (value !== undefined && value !== null && value !== '') {
+            const numericValue = Number(value);
+            if (Number.isFinite(numericValue)) {
+              return numericValue;
+            }
+          }
+        }
+      }
+      return 0;
+    };
+
     this.inventorySummary = {
-      totalProducts: Number(response.totalStockItems ?? 0),
-      totalUnits: Number(response.totalUnits ?? 0),
-      lowStock: Number(response.lowStockItems ?? 0),
-      outOfStock: Number(response.outOfStockItems ?? 0),
-      inventoryValue: Number(response.inventoryValue ?? 0)
+      totalProducts: readInventoryNumber([
+        'totalProducts',
+        'totalStockItems',
+        'stockItems',
+        'stockItemCount',
+        'inventoryItems',
+        'productCount'
+      ]),
+      totalUnits: readInventoryNumber([
+        'totalUnits',
+        'totalQuantity',
+        'totalQuantityOnHand',
+        'quantityOnHand',
+        'totalStockUnits',
+        'units'
+      ]),
+      lowStock: readInventoryNumber([
+        'lowStock',
+        'lowStockItems',
+        'lowStockProducts',
+        'lowStockCount'
+      ]),
+      outOfStock: readInventoryNumber([
+        'outOfStock',
+        'outOfStockItems',
+        'outOfStockProducts',
+        'outOfStockCount'
+      ]),
+      inventoryValue: readInventoryNumber([
+        'inventoryValue',
+        'totalInventoryValue',
+        'stockValue',
+        'value'
+      ])
     };
   }
 

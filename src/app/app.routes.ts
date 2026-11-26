@@ -11,6 +11,7 @@ import { Signup } from './pages/signup/signup';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { Users } from './pages/users/users';
 import { Organizations } from './pages/organizations/organizations';
+import { CreateOrganization } from './pages/create-organization/create-organization';
 import { Products } from './pages/products/products';
 import { ProductCategories } from './pages/product-categories/product-categories';
 import { Inventory } from './pages/inventory/inventory';
@@ -110,6 +111,12 @@ export const routes: Routes = [
         component: Organizations,
         canActivate: [organizationManagementGuard],
         data: { organizationType: 'DISTRIBUTOR' }
+      },
+
+      {
+        path: 'create-organization',
+        component: CreateOrganization,
+        canActivate: [organizationManagementGuard]
       },
 
       {

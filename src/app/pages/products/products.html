@@ -993,6 +993,53 @@
         </div>
 
 
+        @if (
+          selectedProduct.approvalStatus === 'PENDING'
+          || selectedProduct.status === 'PENDING'
+        ) {
+          <div class="approval-actions-section">
+            <h4>Available actions</h4>
+
+            @if (approvalActionError) {
+              <div class="approval-action-message error">
+                {{ approvalActionError }}
+              </div>
+            }
+
+            @if (approvalActionSuccess) {
+              <div class="approval-action-message success">
+                {{ approvalActionSuccess }}
+              </div>
+            }
+
+            <div class="approval-action-grid">
+              <button
+                type="button"
+                class="approve-action-button"
+                [disabled]="approvingProduct"
+                (click)="updateProductApproval('APPROVED')"
+              >
+                <span class="approval-action-icon">✓</span>
+                <strong>
+                  {{ approvingProduct ? 'Please wait...' : 'Approve' }}
+                </strong>
+              </button>
+
+              <button
+                type="button"
+                class="reject-action-button"
+                [disabled]="approvingProduct"
+                (click)="updateProductApproval('REJECTED')"
+              >
+                <span class="approval-action-icon">×</span>
+                <strong>
+                  {{ approvingProduct ? 'Please wait...' : 'Reject' }}
+                </strong>
+              </button>
+            </div>
+          </div>
+        }
+
         <!-- Close -->
         <div class="modal-actions">
 

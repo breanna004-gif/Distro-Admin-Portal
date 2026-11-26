@@ -56,6 +56,37 @@ describe('ProductService categories', () => {
     });
   });
 
+  it('maps alternate product-stat field names used by the backend', () => {
+    let stats:
+      | {
+          totalProducts: number;
+          activeProducts: number;
+          pendingProducts: number;
+          categories: number;
+        }
+      | undefined;
+
+    service.getProductStats().subscribe(result => {
+      stats = result;
+    });
+
+    const request = httpTesting.expectOne('/api/v1/products/stats');
+    request.flush({
+      totalStockItems: 42,
+      activeProductCount: 30,
+      pendingProductCount: 5,
+      categories: 4
+    });
+
+    expect(stats).toEqual({
+      totalProducts: 42,
+      activeProducts: 30,
+      inactiveProducts: 0,
+      pendingProducts: 5,
+      categories: 4
+    });
+  });
+
   it('creates, renames, and deactivates global categories', () => {
     service.createCategory('Food').subscribe();
     const createRequest = httpTesting.expectOne(
@@ -79,5 +110,23 @@ describe('ProductService categories', () => {
     );
     expect(deactivateRequest.request.method).toBe('DELETE');
     deactivateRequest.flush(null);
+  });
+
+  it('approves a pending product through the approval endpoint', () => {
+    service.updateProductApproval('product-1', 'APPROVED').subscribe();
+
+    const request = httpTesting.expectOne(
+      '/api/v1/products/product-1/approval'
+    );
+    expect(request.request.method).toBe('PATCH');
+    expect(request.request.body).toEqual({ status: 'APPROVED' });
+    request.flush({
+      id: 'product-1',
+      name: 'Cement',
+      sku: 'CEM-001',
+      category: 'Construction',
+      approvalStatus: 'APPROVED',
+      active: true
+    });
   });
 });

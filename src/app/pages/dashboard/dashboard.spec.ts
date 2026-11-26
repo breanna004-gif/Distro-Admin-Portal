@@ -7,11 +7,14 @@ import { AdminDashboardService } from '../../services/admin-dashboard';
 import { InventoryService } from '../../services/inventory';
 import { OrganizationService } from '../../services/organization';
 import { UsersService } from '../../services/users';
+import { ProductService } from '../../services/product';
+import { TripManagementService } from '../../services/trip-management.service';
 import { Dashboard } from './dashboard';
 
 describe('Dashboard', () => {
   let component: Dashboard;
   let getDashboard: ReturnType<typeof vi.fn>;
+  let getTrips: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     getDashboard = vi.fn(() => of({
@@ -23,6 +26,7 @@ describe('Dashboard', () => {
       totalTrips: 8,
       lowStockProducts: 1
     }));
+    getTrips = vi.fn(() => of([]));
     TestBed.configureTestingModule({
       imports: [Dashboard],
       providers: [
@@ -46,6 +50,20 @@ describe('Dashboard', () => {
           useValue: {
             getUserCount: () => of(2)
           }
+        },
+        {
+          provide: ProductService,
+          useValue: {
+            getProducts: () => of({
+              content: [],
+              totalElements: 15,
+              totalPages: 1
+            })
+          }
+        },
+        {
+          provide: TripManagementService,
+          useValue: { getTrips }
         }
       ]
     });
@@ -127,6 +145,45 @@ describe('Dashboard', () => {
 
     expect(component.totalUsers).toBe(2);
     expect(component.errorMessage).toContain('users');
+  });
+
+  it('falls back to the product catalog count when the overview count is missing or stale', () => {
+    getDashboard.mockReturnValue(
+      of({
+        totalUsers: 2,
+        totalProducts: 0,
+        totalOrders: 30,
+        pendingOrders: 5,
+        totalPayments: 20,
+        totalTrips: 8,
+        lowStockProducts: 1
+      })
+    );
+
+    component.loadDashboard();
+
+    expect(component.totalProducts).toBe(15);
+  });
+
+  it('uses the trip records when the overview reports zero trips', () => {
+    getDashboard.mockReturnValue(
+      of({
+        totalUsers: 2,
+        totalProducts: 15,
+        totalOrders: 30,
+        pendingOrders: 5,
+        totalPayments: 20,
+        totalTrips: 0,
+        lowStockProducts: 1
+      })
+    );
+    getTrips.mockReturnValue(
+      of([{ id: 'trip-1' }, { id: 'trip-2' }])
+    );
+
+    component.loadDashboard();
+
+    expect(component.totalTrips).toBe(2);
   });
 
   it('does not show a false zero when both user count sources fail', () => {

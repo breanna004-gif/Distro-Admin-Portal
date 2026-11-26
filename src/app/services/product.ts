@@ -82,11 +82,17 @@ interface BackendStockItem {
 }
 
 interface BackendProductStats {
-  totalProducts: number;
-  activeProducts: number;
-  inactiveProducts: number;
-  pendingProducts: number;
-  categories: number;
+  totalProducts?: number;
+  total?: number;
+  productCount?: number;
+  totalStockItems?: number;
+  activeProducts?: number;
+  activeProductCount?: number;
+  inactiveProducts?: number;
+  inactiveProductCount?: number;
+  pendingProducts?: number;
+  pendingProductCount?: number;
+  categories?: number;
 }
 
 export interface ProductPage {
@@ -272,11 +278,25 @@ export class ProductService {
       )
       .pipe(
         map(stats => ({
-          totalProducts: stats.totalProducts,
-          activeProducts: stats.activeProducts,
-          inactiveProducts: stats.inactiveProducts,
-          pendingProducts: stats.pendingProducts,
-          categories: stats.categories
+          totalProducts:
+            stats.totalProducts ??
+            stats.total ??
+            stats.productCount ??
+            stats.totalStockItems ??
+            0,
+          activeProducts:
+            stats.activeProducts ??
+            stats.activeProductCount ??
+            0,
+          inactiveProducts:
+            stats.inactiveProducts ??
+            stats.inactiveProductCount ??
+            0,
+          pendingProducts:
+            stats.pendingProducts ??
+            stats.pendingProductCount ??
+            0,
+          categories: stats.categories ?? 0
         }))
       );
   }

@@ -1,6 +1,15 @@
-import { Component, HostListener, inject } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  HostListener,
+  OnInit,
+  inject
+} from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { EMPTY, catchError, interval, startWith, switchMap } from 'rxjs';
 import { AuthService } from '../../services/auth';
+import { NotificationsService } from '../../services/notifications';
 import { ThemeService } from '../../services/theme';
 
 @Component({
@@ -9,16 +18,42 @@ import { ThemeService } from '../../services/theme';
   templateUrl: './navbar.html',
   styleUrl: './navbar.css'
 })
-export class Navbar {
+export class Navbar implements OnInit {
 
   private authService = inject(AuthService);
+  private notificationsService = inject(NotificationsService);
   private themeService = inject(ThemeService);
+  private destroyRef = inject(DestroyRef);
 
   profileMenuOpen = false;
   isDarkMode = false;
+  unreadNotificationCount: number | null = null;
 
   constructor() {
     this.isDarkMode = this.themeService.isDarkMode();
+  }
+
+  ngOnInit(): void {
+    this.notificationsService.unreadCount$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(count => {
+        this.unreadNotificationCount = count;
+      });
+
+    interval(30_000)
+      .pipe(
+        startWith(0),
+        switchMap(() =>
+          this.notificationsService.refreshUnreadCount().pipe(
+            catchError(error => {
+              console.error('Failed to refresh notification count:', error);
+              return EMPTY;
+            })
+          )
+        ),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe();
   }
 
   toggleTheme(): void {

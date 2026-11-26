@@ -52,4 +52,37 @@ describe('NotificationsService', () => {
 
     expect(receivedName).toBe('ABC distributors');
   });
+
+  it('fetches the latest unread count from the backend', () => {
+    let receivedCount: number | undefined;
+
+    service.refreshUnreadCount().subscribe(count => {
+      receivedCount = count;
+    });
+
+    const request = httpTesting.expectOne('/api/notifications/unread-count');
+    expect(request.request.method).toBe('GET');
+    request.flush(6);
+
+    expect(receivedCount).toBe(6);
+  });
+
+  it('updates the shared unread count when notifications are read', () => {
+    let currentCount: number | null = null;
+    service.unreadCount$.subscribe(count => {
+      currentCount = count;
+    });
+    service.refreshUnreadCount().subscribe();
+    httpTesting.expectOne('/api/notifications/unread-count').flush(2);
+    expect(currentCount).toBe(2);
+
+    service.markAsRead('notification-1').subscribe();
+    const request = httpTesting.expectOne(
+      '/api/notifications/notification-1/read'
+    );
+    expect(request.request.method).toBe('PATCH');
+    request.flush(null);
+
+    expect(currentCount).toBe(1);
+  });
 });

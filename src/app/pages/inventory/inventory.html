@@ -916,6 +916,86 @@
 
         </div>
 
+        @if (stockActionSuccess) {
+          <div class="inventory-action-message success">
+            {{ stockActionSuccess }}
+          </div>
+        }
+
+        <div class="inventory-actions-section">
+          <h4>Inventory actions</h4>
+
+          @if (!stockAction) {
+            <div class="inventory-action-grid">
+              <button
+                type="button"
+                class="restock-action-button"
+                [disabled]="updatingStock"
+                (click)="openStockAction('RESTOCK')"
+              >
+                <span class="inventory-action-icon">◫</span>
+                <strong>Restock</strong>
+              </button>
+
+              <button
+                type="button"
+                class="adjust-action-button"
+                [disabled]="updatingStock"
+                (click)="openStockAction('ADJUST')"
+              >
+                <span class="inventory-action-icon">≠</span>
+                <strong>Adjust Stock</strong>
+              </button>
+            </div>
+          } @else {
+            <div class="stock-action-form">
+              <label>
+                <span>
+                  {{ stockAction === 'RESTOCK'
+                    ? 'Quantity to add'
+                    : 'Exact stock quantity' }}
+                </span>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  [(ngModel)]="stockActionQuantity"
+                  [disabled]="updatingStock"
+                />
+              </label>
+
+              @if (stockActionError) {
+                <div class="inventory-action-message error">
+                  {{ stockActionError }}
+                </div>
+              }
+
+              <div class="stock-action-buttons">
+                <button
+                  type="button"
+                  class="cancel-button"
+                  [disabled]="updatingStock"
+                  (click)="cancelStockAction()"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  class="save-button"
+                  [disabled]="updatingStock"
+                  (click)="saveStockAction()"
+                >
+                  {{ updatingStock
+                    ? 'Saving...'
+                    : (stockAction === 'RESTOCK'
+                      ? 'Restock'
+                      : 'Adjust Stock') }}
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+
 
         <div class="modal-actions">
 

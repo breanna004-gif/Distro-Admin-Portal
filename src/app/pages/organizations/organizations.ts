@@ -362,6 +362,12 @@ export class Organizations implements OnInit {
     });
   }
 
+  createOrganization(): void {
+    void this.router.navigate(['/create-organization'], {
+      queryParams: { type: this.organizationType }
+    });
+  }
+
 
   // ============================================================
   // VIEW ORGANIZATION

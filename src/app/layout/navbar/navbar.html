@@ -4,12 +4,12 @@
   <div class="page-heading">
 
     <div class="heading-icon">
-      <img class="theme-logo theme-logo--light" src="/logiflow-logo-light.svg" alt="" />
-      <img class="theme-logo theme-logo--dark" src="/logiflow-logo-dark.svg" alt="" />
+      <img class="theme-logo theme-logo--light" src="/mydistro-logo-light.svg" alt="" />
+      <img class="theme-logo theme-logo--dark" src="/mydistro-logo-dark.svg" alt="" />
     </div>
 
     <div>
-        <h1>LogiFlow</h1>
+        <h1>MyDistro</h1>
 </div>
 
     </div>
@@ -63,8 +63,12 @@
     <a
       class="icon-button notification-button"
       routerLink="/notifications"
-      aria-label="Notifications"
-      title="Notifications"
+      [attr.aria-label]="unreadNotificationCount
+        ? 'Notifications, ' + unreadNotificationCount + ' unread'
+        : 'Notifications'"
+      [attr.title]="unreadNotificationCount
+        ? unreadNotificationCount + ' unread notifications'
+        : 'Notifications'"
     >
 
       <svg
@@ -75,7 +79,11 @@
         <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
       </svg>
 
-      <span class="notification-dot"></span>
+      @if (unreadNotificationCount && unreadNotificationCount > 0) {
+        <span class="notification-badge">
+          {{ unreadNotificationCount > 99 ? '99+' : unreadNotificationCount }}
+        </span>
+      }
 
     </a>
 

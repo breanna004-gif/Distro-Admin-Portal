@@ -6,8 +6,10 @@ import {
 } from '@angular/common/http';
 
 import {
+  BehaviorSubject,
   Observable,
-  map
+  map,
+  tap
 } from 'rxjs';
 
 import { AuthService } from './auth';
@@ -54,6 +56,9 @@ export class NotificationsService {
 
   private authService = inject(AuthService);
 
+  private readonly unreadCountSubject =
+    new BehaviorSubject<number | null>(null);
+  readonly unreadCount$ = this.unreadCountSubject.asObservable();
 
 private readonly apiUrl =
   '/api/notifications';
@@ -174,6 +179,12 @@ private readonly accessRequestsApiUrl =
 
   }
 
+  refreshUnreadCount(): Observable<number> {
+    return this.getUnreadCount().pipe(
+      tap(count => this.unreadCountSubject.next(count))
+    );
+  }
+
 
   // ============================================================
   // MARK AS READ
@@ -190,6 +201,13 @@ private readonly accessRequestsApiUrl =
         headers:
           this.getHeaders()
       }
+    ).pipe(
+      tap(() => {
+        const currentCount = this.unreadCountSubject.value;
+        if (currentCount !== null) {
+          this.unreadCountSubject.next(Math.max(0, currentCount - 1));
+        }
+      })
     );
 
   }
@@ -208,6 +226,8 @@ private readonly accessRequestsApiUrl =
         headers:
           this.getHeaders()
       }
+    ).pipe(
+      tap(() => this.unreadCountSubject.next(0))
     );
 
   }

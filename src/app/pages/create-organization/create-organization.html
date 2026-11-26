@@ -3,12 +3,12 @@
   <div class="page-header">
 
     <div>
-      <div class="eyebrow">ORGANIZATION MANAGEMENT</div>
+      <div class="eyebrow">{{ type }} MANAGEMENT</div>
 
-      <h1>Create Organization</h1>
+      <h1>Create {{ type === 'MANUFACTURER' ? 'Manufacturer' : 'Distributor' }}</h1>
 
       <p>
-        Register a new manufacturer or distributor on the platform.
+        Register a new {{ type.toLowerCase() }} on the platform.
       </p>
     </div>
 
@@ -16,6 +16,7 @@
       type="button"
       class="cancel-button"
       (click)="cancel()"
+      [disabled]="loading || requestLoading || invitationLoading"
     >
       Cancel
     </button>
@@ -32,43 +33,32 @@
       </div>
 
       <div>
-        <h2>Create an organization</h2>
+        <h2>Create a {{ type.toLowerCase() }} account</h2>
 
         <p>
-          Add an organization to the platform.
+          Add a {{ type.toLowerCase() }} to the platform.
         </p>
       </div>
 
     </div>
 
 
-    @if (errorMessage) {
+    @if (!createdOrganization) {
+      @if (errorMessage) {
+        <div class="message error" role="alert">
+          {{ errorMessage }}
+        </div>
+      }
 
-      <div class="message error">
-        {{ errorMessage }}
-      </div>
-
-    }
-
-
-    @if (successMessage) {
-
-      <div class="message success">
-        {{ successMessage }}
-      </div>
-
-    }
-
-
-    <form
-      (ngSubmit)="createOrganization()"
-      #organizationForm="ngForm"
-    >
+      <form
+        (ngSubmit)="createOrganization()"
+        #organizationForm="ngForm"
+      >
 
       <div class="form-group">
 
         <label for="name">
-          Organization name <span>*</span>
+          {{ type === 'MANUFACTURER' ? 'Manufacturer' : 'Distributor' }} name <span>*</span>
         </label>
 
         <input
@@ -82,41 +72,63 @@
         />
 
       </div>
-
-
       <div class="form-group">
-
-        <label for="type">
-          Organization type <span>*</span>
-        </label>
-
-        <select
-          id="type"
-          name="type"
-          [(ngModel)]="type"
+        <label for="contactName">Contact person <span>*</span></label>
+        <input
+          id="contactName"
+          type="text"
+          name="contactName"
+          [(ngModel)]="contactName"
+          placeholder="Enter primary contact name"
+          maxlength="150"
           required
-        >
-
-          <option value="MANUFACTURER">
-            Manufacturer
-          </option>
-
-          <option value="DISTRIBUTOR">
-            Distributor
-          </option>
-
-        </select>
-
+        />
       </div>
 
+      <div class="form-group">
+        <label for="email">Contact email <span>*</span></label>
+        <input
+          id="email"
+          type="email"
+          name="email"
+          [(ngModel)]="email"
+          placeholder="name@example.com"
+          maxlength="254"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="phone">Contact phone <span>*</span></label>
+        <input
+          id="phone"
+          type="tel"
+          name="phone"
+          [(ngModel)]="phone"
+          placeholder="Enter phone number"
+          maxlength="40"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="location">Location</label>
+        <input
+          id="location"
+          type="text"
+          name="location"
+          [(ngModel)]="location"
+          placeholder="City, country"
+          maxlength="150"
+        />
+      </div>
 
       <div class="form-info">
 
         <strong>Organization setup</strong>
 
         <p>
-          The organization will be registered and can then be
-          associated with users, products and other platform activity.
+          The contact's admin access request will be submitted for approval, then an invitation email will be sent. Account access remains subject to approval.
         </p>
 
       </div>
@@ -128,7 +140,7 @@
           type="button"
           class="secondary-button"
           (click)="cancel()"
-          [disabled]="loading"
+          [disabled]="loading || requestLoading || invitationLoading"
         >
           Cancel
         </button>
@@ -142,14 +154,62 @@
           @if (loading) {
             Creating...
           } @else {
-            Create Organization
+            Create and Request Admin Approval
           }
 
         </button>
 
       </div>
 
-    </form>
+      </form>
+    } @else {
+      <div class="message success" role="status">
+        {{ successMessage }}
+      </div>
+
+      @if (requestErrorMessage) {
+        <div class="message error" role="alert">
+          {{ requestErrorMessage }}
+        </div>
+      }
+
+      @if (invitationErrorMessage) {
+        <div class="message error" role="alert">
+          {{ invitationErrorMessage }}
+        </div>
+      }
+
+      <div class="form-actions next-step-actions">
+        @if (requestErrorMessage) {
+          <button
+            type="button"
+            class="primary-button"
+            (click)="retryAccessRequest()"
+            [disabled]="requestLoading"
+          >
+            {{ requestLoading ? 'Submitting...' : 'Retry Access Request' }}
+          </button>
+        }
+        @if (invitationErrorMessage) {
+          <button
+            type="button"
+            class="primary-button"
+            (click)="retryInvitation()"
+            [disabled]="invitationLoading"
+          >
+            {{ invitationLoading ? 'Sending...' : 'Retry Email Invitation' }}
+          </button>
+        }
+        <button
+          type="button"
+          class="secondary-button"
+          (click)="cancel()"
+          [disabled]="requestLoading || invitationLoading"
+        >
+          View {{ type === 'MANUFACTURER' ? 'Manufacturers' : 'Distributors' }}
+        </button>
+      </div>
+    }
 
   </div>
 

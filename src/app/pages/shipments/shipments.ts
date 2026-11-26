@@ -256,7 +256,7 @@ export class Shipments {
           this.refreshShipments();
           this.showForm = false;
           this.form = this.emptyForm();
-          this.successMessage = 'Shipment registered successfully.';
+          this.successMessage = 'Shipment added successfully.';
         },
         error: error => {
           this.errorMessage = this.getApiErrorMessage(

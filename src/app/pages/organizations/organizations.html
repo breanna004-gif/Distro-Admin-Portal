@@ -16,6 +16,15 @@
       </p>
     </div>
 
+    <button
+      type="button"
+      class="add-button"
+      (click)="createOrganization()"
+    >
+      <span class="add-icon" aria-hidden="true">+</span>
+      Add {{ organizationType === 'MANUFACTURER' ? 'Manufacturer' : 'Distributor' }}
+    </button>
+
   </div>
 
   <app-report-download

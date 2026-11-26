@@ -229,7 +229,7 @@ export class FleetManagement {
           this.refreshVehicles();
           this.showForm = false;
           this.form = this.emptyForm();
-          this.successMessage = 'Vehicle registered successfully.';
+          this.successMessage = 'Vehicle added successfully.';
         },
         error: error => {
           this.errorMessage = this.getApiErrorMessage(

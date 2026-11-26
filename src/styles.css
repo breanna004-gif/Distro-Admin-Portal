@@ -805,3 +805,328 @@ body.dark-mode ::-webkit-scrollbar-thumb:hover {
     justify-content: flex-start;
   }
 }
+
+
+/* =========================================================
+   GLOBAL ACTION BUTTON SYSTEM
+   Shared style: product-page primary, secondary and compact actions
+   ========================================================= */
+
+button.primary-button,
+button.add-button,
+button.save-button,
+button.mark-all-button,
+button.login-button,
+button.signup-button,
+button.search-button,
+button.download-button {
+  min-height: 40px;
+  border: 1px solid var(--primary);
+  border-radius: 9px;
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 650;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.16);
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+
+button.primary-button:hover:not(:disabled),
+button.add-button:hover:not(:disabled),
+button.save-button:hover:not(:disabled),
+button.mark-all-button:hover:not(:disabled),
+button.login-button:hover:not(:disabled),
+button.signup-button:hover:not(:disabled),
+button.search-button:hover:not(:disabled),
+button.download-button:hover:not(:disabled) {
+  border-color: var(--primary-dark);
+  background: var(--primary-dark);
+  box-shadow: 0 9px 22px rgba(37, 99, 235, 0.22);
+  transform: translateY(-1px);
+}
+
+button.primary-button:active:not(:disabled),
+button.add-button:active:not(:disabled),
+button.save-button:active:not(:disabled),
+button.mark-all-button:active:not(:disabled),
+button.login-button:active:not(:disabled),
+button.signup-button:active:not(:disabled),
+button.search-button:active:not(:disabled),
+button.download-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+button.secondary-button,
+button.cancel-button,
+button.reset-button,
+button.back-button,
+button.resend-activation-button {
+  min-height: 40px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--soft-background);
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 650;
+  box-shadow: none;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+button.secondary-button:hover:not(:disabled),
+button.cancel-button:hover:not(:disabled),
+button.reset-button:hover:not(:disabled),
+button.back-button:hover:not(:disabled),
+button.resend-activation-button:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.38);
+  background: var(--hover-background);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+button.danger-button,
+button.delete-button,
+button.reject-request-button,
+button.reject-button,
+button.small-button.danger {
+  min-height: 40px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 9px;
+  background: rgba(239, 68, 68, 0.10);
+  color: #ef4444;
+  font-size: 11px;
+  font-weight: 650;
+  box-shadow: none;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+button.danger-button:hover:not(:disabled),
+button.delete-button:hover:not(:disabled),
+button.reject-request-button:hover:not(:disabled),
+button.reject-button:hover:not(:disabled),
+button.small-button.danger:hover:not(:disabled) {
+  border-color: rgba(239, 68, 68, 0.45);
+  background: rgba(239, 68, 68, 0.16);
+  color: #dc2626;
+  transform: translateY(-1px);
+}
+
+button.approve-request-button,
+button.approve-action-button,
+button.accept-button {
+  min-height: 40px;
+  border: 1px solid rgba(16, 185, 129, 0.28);
+  border-radius: 9px;
+  background: rgba(16, 185, 129, 0.10);
+  color: #10b981;
+  font-size: 11px;
+  font-weight: 650;
+  box-shadow: none;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+button.approve-request-button:hover:not(:disabled),
+button.approve-action-button:hover:not(:disabled),
+button.accept-button:hover:not(:disabled) {
+  border-color: rgba(16, 185, 129, 0.45);
+  background: rgba(16, 185, 129, 0.16);
+  color: #059669;
+  transform: translateY(-1px);
+}
+
+button.view-button,
+button.text-button,
+button.small-button {
+  min-height: 32px;
+  padding: 0 11px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--primary);
+  font-size: 10px;
+  font-weight: 650;
+  box-shadow: none;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+button.view-button:hover:not(:disabled),
+button.text-button:hover:not(:disabled),
+button.small-button:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.18);
+  background: rgba(37, 99, 235, 0.10);
+  color: var(--primary-dark);
+  transform: translateY(-1px);
+}
+
+button.page-button,
+button.pagination-button,
+button.filter-chip,
+button.mark-read-button {
+  min-height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card-background);
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 650;
+  box-shadow: none;
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s ease;
+}
+
+button.page-button.active,
+button.pagination-button.active,
+button.filter-chip.active,
+button.mark-read-button:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.40);
+  background: rgba(37, 99, 235, 0.12);
+  color: var(--primary);
+}
+
+button.page-button:hover:not(:disabled),
+button.pagination-button:hover:not(:disabled),
+button.filter-chip:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.35);
+  background: var(--hover-background);
+  color: var(--primary);
+  transform: translateY(-1px);
+}
+
+button.primary-button:disabled,
+button.add-button:disabled,
+button.save-button:disabled,
+button.mark-all-button:disabled,
+button.login-button:disabled,
+button.signup-button:disabled,
+button.search-button:disabled,
+button.download-button:disabled,
+button.secondary-button:disabled,
+button.cancel-button:disabled,
+button.reset-button:disabled,
+button.back-button:disabled,
+button.danger-button:disabled,
+button.delete-button:disabled,
+button.approve-request-button:disabled,
+button.approve-action-button:disabled,
+button.accept-button:disabled,
+button.reject-request-button:disabled,
+button.reject-button:disabled,
+button.view-button:disabled,
+button.text-button:disabled,
+button.small-button:disabled,
+button.page-button:disabled,
+button.pagination-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* Component styles may follow this file; these rules ensure one consistent look. */
+:root body button.primary-button,
+:root body button.add-button,
+:root body button.save-button,
+:root body button.mark-all-button,
+:root body button.login-button,
+:root body button.signup-button,
+:root body button.search-button,
+:root body button.download-button {
+  min-height: 40px !important;
+  border: 1px solid var(--primary) !important;
+  border-radius: 9px !important;
+  background: var(--primary) !important;
+  color: #ffffff !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.16) !important;
+}
+
+:root body button.primary-button:hover:not(:disabled),
+:root body button.add-button:hover:not(:disabled),
+:root body button.save-button:hover:not(:disabled),
+:root body button.mark-all-button:hover:not(:disabled),
+:root body button.login-button:hover:not(:disabled),
+:root body button.signup-button:hover:not(:disabled),
+:root body button.search-button:hover:not(:disabled),
+:root body button.download-button:hover:not(:disabled) {
+  background: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+  transform: translateY(-1px) !important;
+}
+
+:root body button.secondary-button,
+:root body button.cancel-button,
+:root body button.reset-button,
+:root body button.back-button,
+:root body button.resend-activation-button {
+  min-height: 40px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 9px !important;
+  background: var(--soft-background) !important;
+  color: var(--text-secondary) !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  box-shadow: none !important;
+}
+
+:root body button.secondary-button:hover:not(:disabled),
+:root body button.cancel-button:hover:not(:disabled),
+:root body button.reset-button:hover:not(:disabled),
+:root body button.back-button:hover:not(:disabled),
+:root body button.resend-activation-button:hover:not(:disabled) {
+  border-color: rgba(37, 99, 235, 0.38) !important;
+  background: var(--hover-background) !important;
+  color: var(--primary) !important;
+  transform: translateY(-1px) !important;
+}
+
+:root body button.danger-button,
+:root body button.delete-button,
+:root body button.reject-request-button,
+:root body button.reject-button,
+:root body button.small-button.danger {
+  min-height: 40px !important;
+  border: 1px solid rgba(239, 68, 68, 0.28) !important;
+  border-radius: 9px !important;
+  background: rgba(239, 68, 68, 0.10) !important;
+  color: #ef4444 !important;
+  font-size: 11px !important;
+  font-weight: 650 !important;
+  box-shadow: none !important;
+}
+
+:root body button.view-button,
+:root body button.text-button,
+:root body button.small-button {
+  min-height: 32px !important;
+  padding: 0 11px !important;
+  border: 1px solid transparent !important;
+  border-radius: 7px !important;
+  background: transparent !important;
+  color: var(--primary) !important;
+  font-size: 10px !important;
+  font-weight: 650 !important;
+  box-shadow: none !important;
+}

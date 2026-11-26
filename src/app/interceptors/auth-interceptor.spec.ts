@@ -158,4 +158,95 @@ describe('authInterceptor', () => {
     expect(authServiceMock.refresh).not.toHaveBeenCalled();
     expect(interceptedRequest?.headers.has('Authorization')).toBe(false);
   });
+
+  it('serves recent cache immediately, refreshes it, then expires it', () => {
+    const request = new HttpRequest(
+      'GET',
+      `/api/cache-test/${Math.random()}`
+    );
+    const received: string[] = [];
+    let requestCount = 0;
+    const next = () => of(new HttpResponse({
+      body: `response-${++requestCount}`
+    }));
+
+    const makeRequest = () =>
+      TestBed.runInInjectionContext(() =>
+        authInterceptor(request, next).subscribe(event => {
+          if (event instanceof HttpResponse) {
+            received.push(event.body as string);
+          }
+        })
+      );
+
+    vi.useFakeTimers();
+    try {
+      makeRequest();
+      makeRequest();
+      vi.advanceTimersByTime(15_001);
+      makeRequest();
+      makeRequest();
+      vi.advanceTimersByTime(30_001);
+      makeRequest();
+    } finally {
+      vi.useRealTimers();
+    }
+
+    expect(received).toEqual([
+      'response-1',
+      'response-1',
+      'response-1',
+      'response-2',
+      'response-3'
+    ]);
+    expect(requestCount).toBe(3);
+  });
+
+  it('invalidates cached API responses when a write request starts', () => {
+    const url = `/api/cache-test/${Math.random()}`;
+    const getRequest = new HttpRequest('GET', url);
+    const writeRequest = new HttpRequest('PATCH', url, {});
+    let getCount = 0;
+    const received: string[] = [];
+
+    const makeGetRequest = () =>
+      TestBed.runInInjectionContext(() =>
+        authInterceptor(getRequest, () =>
+          of(new HttpResponse({ body: `response-${++getCount}` }))
+        ).subscribe(event => {
+          if (event instanceof HttpResponse) {
+            received.push(event.body as string);
+          }
+        })
+      );
+
+    makeGetRequest();
+    TestBed.runInInjectionContext(() =>
+      authInterceptor(writeRequest, () => of(new HttpResponse())).subscribe()
+    );
+    makeGetRequest();
+
+    expect(received).toEqual(['response-1', 'response-2']);
+    expect(getCount).toBe(2);
+  });
+
+  it('always fetches the latest unread notification count', () => {
+    const request = new HttpRequest(
+      'GET',
+      '/api/notifications/unread-count'
+    );
+    let requestCount = 0;
+
+    const makeRequest = () =>
+      TestBed.runInInjectionContext(() =>
+        authInterceptor(request, () =>
+          of(new HttpResponse({ body: ++requestCount }))
+        ).subscribe()
+      );
+
+    makeRequest();
+    makeRequest();
+
+    expect(requestCount).toBe(2);
+  });
 });

@@ -77,6 +77,11 @@ export class Inventory implements OnInit {
   selectedInventory: InventoryItem | null = null;
   loadingInventory = false;
   viewInventoryError = '';
+  stockAction: 'RESTOCK' | 'ADJUST' | null = null;
+  stockActionQuantity = 0;
+  updatingStock = false;
+  stockActionError = '';
+  stockActionSuccess = '';
 
   newInventory = {
     productName: '',
@@ -357,13 +362,118 @@ export class Inventory implements OnInit {
   }
 
   closeViewInventoryModal(): void {
-    if (this.loadingInventory) {
+
+    if (this.loadingInventory || this.updatingStock) {
       return;
     }
 
     this.showViewInventoryModal = false;
     this.selectedInventory = null;
     this.viewInventoryError = '';
+    this.stockAction = null;
+    this.stockActionQuantity = 0;
+    this.stockActionError = '';
+    this.stockActionSuccess = '';
+  }
+
+  openStockAction(action: 'RESTOCK' | 'ADJUST'): void {
+    const inventory = this.selectedInventory;
+    if (!inventory) {
+      return;
+    }
+
+    this.stockAction = action;
+    this.stockActionQuantity =
+      action === 'RESTOCK'
+        ? 1
+        : inventory.quantity;
+    this.stockActionError = '';
+    this.stockActionSuccess = '';
+  }
+
+  cancelStockAction(): void {
+    this.stockAction = null;
+    this.stockActionQuantity = 0;
+    this.stockActionError = '';
+  }
+
+  saveStockAction(): void {
+    const inventory = this.selectedInventory;
+    if (!inventory || !this.stockAction) {
+      return;
+    }
+    const action = this.stockAction;
+
+    const input = Number(this.stockActionQuantity);
+    if (!Number.isFinite(input) || input < 0) {
+      this.stockActionError =
+        'Enter a valid quantity that is zero or greater.';
+      return;
+    }
+
+    if (
+      this.stockAction === 'RESTOCK'
+      && input === 0
+    ) {
+      this.stockActionError =
+        'Enter an amount greater than zero to restock.';
+      return;
+    }
+
+    const nextQuantity =
+      this.stockAction === 'RESTOCK'
+        ? inventory.quantity + input
+        : input;
+
+    if (nextQuantity < (inventory.reservedQuantity ?? 0)) {
+      this.stockActionError =
+        'Stock quantity cannot be lower than the reserved quantity.';
+      return;
+    }
+
+    this.updatingStock = true;
+    this.stockActionError = '';
+    this.inventoryService.updateInventory(inventory.id, {
+      quantity: nextQuantity,
+      reservedQuantity: inventory.reservedQuantity ?? 0,
+      availableQuantity:
+        nextQuantity - (inventory.reservedQuantity ?? 0)
+    }).subscribe({
+      next: updated => {
+        const merged = {
+          ...inventory,
+          ...updated,
+          quantity: updated.quantity ?? nextQuantity,
+          reservedQuantity:
+            updated.reservedQuantity ?? inventory.reservedQuantity ?? 0,
+          availableQuantity:
+            updated.availableQuantity ??
+            nextQuantity - (inventory.reservedQuantity ?? 0)
+        };
+        this.selectedInventory = merged;
+        this.inventory = this.inventory.map(item =>
+          item.id === merged.id ? merged : item
+        );
+        this.filteredInventory = this.filteredInventory.map(item =>
+          item.id === merged.id ? merged : item
+        );
+        this.updatingStock = false;
+        this.stockAction = null;
+        this.stockActionQuantity = 0;
+        this.stockActionSuccess =
+          action === 'RESTOCK'
+            ? 'Stock restocked successfully.'
+            : 'Stock adjusted successfully.';
+        this.changeDetectorRef.markForCheck();
+      },
+      error: error => {
+        this.updatingStock = false;
+        this.stockActionError =
+          error?.error?.message ||
+          'Unable to update stock. Please try again.';
+        this.changeDetectorRef.markForCheck();
+      }
+    });
   }
 
   // ================================================================

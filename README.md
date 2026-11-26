@@ -95,6 +95,8 @@ and created/updated responses to match the corresponding model in
 | `POST` | `/api/v1/shared-loads/{id}/reset` | Reset recommendation confirmations |
 | `GET`, `POST` | `/api/v1/trips` | List trips; create a trip |
 | `GET` | `/api/v1/trips/{id}` | Read trip details |
+| `PATCH` | `/api/v1/trips/{id}/driver` | Reassign a trip's driver with `{ "driverId": "..." }` before the trip enters transit |
+| `DELETE` | `/api/v1/trips/{id}` | Delete a PLANNED or SCHEDULED trip and unlink its shipments, returning them to READY |
 | `PATCH` | `/api/v1/trips/{id}/status` | Update trip status |
 | `PATCH` | `/api/v1/trips/{id}/stops/{stopId}/status` | Update trip-stop status |
 
@@ -102,6 +104,12 @@ Organizations used by vehicle and shipment forms are loaded from
 `/api/organizations`; driver options for fleet and trip forms are loaded from
 `/api/v1/drivers`. API failures are shown in the relevant screen rather than
 replaced with sample data.
+
+## Notifications
+
+The navbar polls `GET /api/notifications/unread-count` every 30 seconds; the
+endpoint should return the unread count as a JSON number. Mark-as-read and
+mark-all-as-read actions update the displayed count immediately.
 
 ## Code scaffolding
 

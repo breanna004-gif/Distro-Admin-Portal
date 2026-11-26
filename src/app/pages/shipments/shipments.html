@@ -253,7 +253,7 @@
           <span>Allow consideration for shared loads</span>
         </label>
         <p class="field-help">
-          This allows LogiFlow to recommend the shipment for compatible loads.
+          This allows MyDistro to recommend the shipment for compatible loads.
           It does not authorize another organization to handle the cargo.
         </p>
         <label class="form-field">
@@ -317,7 +317,6 @@
     </section>
 
     <section class="detail-section" *ngIf="canCorrectLocation(shipment)">
-      <h3>Correct location</h3>
       <button *ngIf="!editingLocation" class="secondary-button" type="button"
         (click)="startLocationEdit(shipment)">Edit location</button>
       <ng-container *ngIf="editingLocation">

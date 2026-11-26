@@ -109,16 +109,23 @@
    NOTIFICATIONS
    ========================================================= */
 
-.notification-dot {
+.notification-badge {
   position: absolute;
-  top: 7px;
-  right: 7px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
+  top: 2px;
+  right: 1px;
+  display: grid;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 3px;
+  place-items: center;
+  border-radius: 10px;
   background: var(--danger);
   border: 2px solid var(--card-background);
-  box-sizing: content-box;
+  color: #ffffff;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1;
+  box-sizing: border-box;
 }
 
 /* =========================================================

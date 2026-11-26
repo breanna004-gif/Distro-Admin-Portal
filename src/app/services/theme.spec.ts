@@ -26,7 +26,7 @@ describe('ThemeService', () => {
     expect(document.body.classList.contains('dark-mode')).toBe(false);
     expect(localStorage.getItem('admin_theme')).toBe('light');
     expect(document.getElementById('app-favicon')?.getAttribute('href')).toBe(
-      '/logiflow-logo-light.svg'
+      '/mydistro-logo-light.svg'
     );
   });
 
@@ -39,7 +39,7 @@ describe('ThemeService', () => {
     expect(document.body.classList.contains('dark-mode')).toBe(true);
     expect(localStorage.getItem('admin_theme')).toBe('dark');
     expect(document.getElementById('app-favicon')?.getAttribute('href')).toBe(
-      '/logiflow-logo-dark.svg'
+      '/mydistro-logo-dark.svg'
     );
   });
 });

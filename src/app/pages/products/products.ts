@@ -77,6 +77,9 @@ export class Products implements OnInit {
 
   loadingProduct = false;
   viewProductError = '';
+  approvingProduct = false;
+  approvalActionError = '';
+  approvalActionSuccess = '';
 
   private searchTimer?: ReturnType<typeof setTimeout>;
 
@@ -146,6 +149,12 @@ export class Products implements OnInit {
 
           this.totalPages =
             response.totalPages || 1;
+          if (this.totalElements > 0) {
+            this.productStats = {
+              ...this.productStats,
+              totalProducts: this.totalElements
+            };
+          }
           this.changeDetectorRef.markForCheck();
         },
 
@@ -420,6 +429,8 @@ export class Products implements OnInit {
   viewProduct(productId: string): void {
 
     this.viewProductError = '';
+    this.approvalActionError = '';
+    this.approvalActionSuccess = '';
     this.selectedProduct = null;
 
     this.loadingProduct = true;
@@ -462,12 +473,68 @@ export class Products implements OnInit {
 
   closeViewProductModal(): void {
 
-    if (this.loadingProduct) {
+    if (this.loadingProduct || this.approvingProduct) {
       return;
     }
 
     this.showViewProductModal = false;
     this.selectedProduct = null;
     this.viewProductError = '';
+    this.approvalActionError = '';
+    this.approvalActionSuccess = '';
+  }
+
+  updateProductApproval(
+    status: 'APPROVED' | 'REJECTED'
+  ): void {
+    const product = this.selectedProduct;
+    if (!product || this.approvingProduct) {
+      return;
+    }
+
+    if (
+      product.approvalStatus !== 'PENDING'
+      && product.status !== 'PENDING'
+    ) {
+      this.approvalActionError =
+        'This product has already been reviewed.';
+      return;
+    }
+
+    this.approvingProduct = true;
+    this.approvalActionError = '';
+    this.approvalActionSuccess = '';
+
+    this.productService
+      .updateProductApproval(product.id, status)
+      .pipe(timeout({ first: 10000 }))
+      .subscribe({
+        next: updatedProduct => {
+          this.approvingProduct = false;
+          this.selectedProduct = updatedProduct;
+          this.products = this.products.map(item =>
+            item.id === updatedProduct.id
+              ? updatedProduct
+              : item
+          );
+          this.approvalActionSuccess =
+            status === 'APPROVED'
+              ? 'Product approved successfully.'
+              : 'Product rejected successfully.';
+          this.loadProducts();
+          this.loadProductStats();
+          this.changeDetectorRef.markForCheck();
+        },
+        error: error => {
+          this.approvingProduct = false;
+          this.approvalActionError =
+            error?.name === 'TimeoutError'
+              ? 'The approval request timed out. Please try again.'
+              : error?.error?.message ||
+                error?.error?.error ||
+                `Unable to ${status === 'APPROVED' ? 'approve' : 'reject'} this product.`;
+          this.changeDetectorRef.markForCheck();
+        }
+      });
   }
 }

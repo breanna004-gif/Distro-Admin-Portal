@@ -11,11 +11,19 @@ describe('Reports', () => {
   let getReportOverview: ReturnType<typeof vi.fn>;
   let getRevenueReport: ReturnType<typeof vi.fn>;
   let getOrderReport: ReturnType<typeof vi.fn>;
+  let getInventoryReport: ReturnType<typeof vi.fn>;
 
   beforeEach(async () => {
     getReportOverview = vi.fn(() => of({ totalRevenue: 0 }));
     getRevenueReport = vi.fn(() => of([]));
     getOrderReport = vi.fn(() => of([]));
+    getInventoryReport = vi.fn(() => of({
+      totalProducts: 5,
+      totalUnits: 120,
+      lowStockItems: 2,
+      outOfStockItems: 1,
+      inventoryValue: 50000
+    }));
 
     await TestBed.configureTestingModule({
       imports: [Reports],
@@ -24,7 +32,8 @@ describe('Reports', () => {
         useValue: {
           getReportOverview,
           getRevenueReport,
-          getOrderReport
+          getOrderReport,
+          getInventoryReport
         }
       }]
     }).compileComponents();
@@ -53,6 +62,19 @@ describe('Reports', () => {
     expect(component.orderChartData.labels).toEqual(['October']);
     expect(component.orderChartData.datasets[0].data).toEqual([12]);
     expect(component.errorMessage).toBe('');
+  });
+
+  it('loads inventory values from the inventory report endpoint', () => {
+    component.loadReports();
+
+    expect(getInventoryReport).toHaveBeenCalled();
+    expect(component.inventorySummary).toEqual({
+      totalProducts: 5,
+      totalUnits: 120,
+      lowStock: 2,
+      outOfStock: 1,
+      inventoryValue: 50000
+    });
   });
 
   it('shows a report error instead of throwing on an unsupported response shape', () => {

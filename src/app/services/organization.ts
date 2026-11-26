@@ -44,12 +44,17 @@ export interface Organization {
   updatedAt?: string;
 }
 
-type DirectoryOrganization = Omit<Organization, 'type' | 'name'> & {
+type DirectoryOrganization = Omit<Organization, 'type' | 'name' | 'contactName'> & {
   name?: string | null;
   organizationName?: string | null;
   companyName?: string | null;
   businessName?: string | null;
   legalName?: string | null;
+  contactName?: string | null;
+  contactPerson?: string | null;
+  contactPersonName?: string | null;
+  primaryContact?: string | null;
+  primaryContactName?: string | null;
   type?: OrganizationType;
 };
 
@@ -76,21 +81,29 @@ export class OrganizationService {
     organization: DirectoryOrganization,
     type: 'MANUFACTURER' | 'DISTRIBUTOR'
   ): Organization {
+    const registeredOrganizationName =
+      organization.organizationName?.trim() ||
+      organization.companyName?.trim() ||
+      organization.businessName?.trim() ||
+      organization.legalName?.trim();
+    const responseName = organization.name?.trim();
     const contactName =
       organization.contactName?.trim() ||
+      organization.contactPerson?.trim() ||
+      organization.contactPersonName?.trim() ||
+      organization.primaryContact?.trim() ||
+      organization.primaryContactName?.trim() ||
+      (registeredOrganizationName &&
+        responseName &&
+        responseName.toLowerCase() !== registeredOrganizationName.toLowerCase()
+        ? responseName
+        : undefined) ||
       undefined;
-    const location =
-      organization.location?.trim() ||
-      undefined;
+    const location = organization.location?.trim() || undefined;
+
     return {
       ...organization,
-      name:
-        organization.organizationName?.trim() ||
-        organization.companyName?.trim() ||
-        organization.businessName?.trim() ||
-        organization.legalName?.trim() ||
-        organization.name?.trim() ||
-        '',
+      name: registeredOrganizationName || responseName || '',
       contactName,
       location,
       userCount: organization.userCount ?? 0,
@@ -188,6 +201,36 @@ export class OrganizationService {
 
   }
 
+  createManufacturer(
+    request: Omit<CreateOrganizationRequest, 'type'>
+  ): Observable<Organization> {
+    return this.http
+      .post<DirectoryOrganization>('/api/manufacturers', {
+        ...request,
+        type: 'MANUFACTURER'
+      })
+      .pipe(
+        map(organization =>
+          this.mapDirectoryOrganization(organization, 'MANUFACTURER')
+        )
+      );
+  }
+
+  createDistributor(
+    request: Omit<CreateOrganizationRequest, 'type'>
+  ): Observable<Organization> {
+    return this.http
+      .post<DirectoryOrganization>('/api/distributors', {
+        ...request,
+        type: 'DISTRIBUTOR'
+      })
+      .pipe(
+        map(organization =>
+          this.mapDirectoryOrganization(organization, 'DISTRIBUTOR')
+        )
+      );
+  }
+
   updateOrganizationStatus(
     id: string,
     status: OrganizationStatus
@@ -203,3 +246,4 @@ export class OrganizationService {
   }
 
 }
+

@@ -58,18 +58,24 @@ export class InviteUser implements OnInit {
   // ============================================================
 
   private readonly platformRoles = [
+    { value: 'MANUFACTURER_ADMIN', label: 'Manufacturer Admin' },
     { value: 'MANUFACTURER_STAFF', label: 'Manufacturer Staff' },
+    { value: 'DISTRIBUTOR_ADMIN', label: 'Distributor Admin' },
     { value: 'DISTRIBUTOR_STAFF', label: 'Distributor Staff' }
   ];
 
   get roles(): { value: string; label: string }[] {
     if (this.isPlatformAdmin) {
       if (this.requestedOrganizationType === 'MANUFACTURER') {
-        return [this.platformRoles[0]];
+        return this.platformRoles.filter(role =>
+          role.value.startsWith('MANUFACTURER_')
+        );
       }
 
       if (this.requestedOrganizationType === 'DISTRIBUTOR') {
-        return [this.platformRoles[1]];
+        return this.platformRoles.filter(role =>
+          role.value.startsWith('DISTRIBUTOR_')
+        );
       }
 
       return this.platformRoles;
