@@ -12,6 +12,7 @@ import {
 interface BackendVehicle {
   id: string;
   organizationId?: string | null;
+  organizationName?: string | null;
   ownerOrganizationId?: string | null;
   ownerOrganizationName?: string | null;
   registrationNumber?: string | null;
@@ -122,7 +123,10 @@ export class FleetManagementService {
       year: vehicle.year ?? 0,
       type: (vehicle.vehicleType ?? vehicle.type ?? 'OTHER') as VehicleType,
       ownerOrganizationId: vehicle.organizationId ?? vehicle.ownerOrganizationId ?? '',
-      ownerOrganizationName: vehicle.ownerOrganizationName ?? '',
+      ownerOrganizationName:
+        vehicle.organizationName ??
+        vehicle.ownerOrganizationName ??
+        '',
       maxWeightKg: vehicle.capacityKg ?? vehicle.maxWeightKg ?? 0,
       cargoVolumeM3: Number(vehicle.capacityM3 ?? vehicle.cargoVolumeM3 ?? 0),
       cargoCategories: vehicle.cargoCategories ?? [],

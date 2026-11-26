@@ -72,7 +72,7 @@ export class FleetManagement {
     this.fleetService.getVehicles().subscribe({
       next: vehicles => {
         this.vehicles = vehicles;
-        this.applyOrganizationNames();
+        this.enrichVehicles();
       },
       error: () => {
         this.errorMessage = 'Unable to load vehicles. Please try again.';
@@ -83,10 +83,8 @@ export class FleetManagement {
   private loadOrganizations(): void {
     this.organizationService.getBusinessOrganizations().subscribe({
       next: organizations => {
-        this.organizations = organizations.filter(
-          organization => organization.type === 'DISTRIBUTOR'
-        );
-        this.applyOrganizationNames();
+        this.organizations = organizations;
+        this.enrichVehicles();
       },
       error: () => {
         this.errorMessage = 'Unable to load organizations. Please try again.';
@@ -98,11 +96,18 @@ export class FleetManagement {
     this.driverService.getDrivers().subscribe({
       next: drivers => {
         this.drivers = drivers;
+        this.enrichVehicles();
       },
       error: () => {
         this.errorMessage = 'Unable to load drivers. Please try again.';
       }
     });
+  }
+
+  get distributorOrganizations(): Organization[] {
+    return this.organizations.filter(
+      organization => organization.type === 'DISTRIBUTOR'
+    );
   }
 
   get filteredVehicles(): Vehicle[] {
@@ -186,7 +191,7 @@ export class FleetManagement {
       return;
     }
 
-    const organization = this.organizations.find(
+    const organization = this.distributorOrganizations.find(
       item => item.id === this.form.ownerOrganizationId
     );
 
@@ -340,18 +345,25 @@ export class FleetManagement {
     return vehicle.id;
   }
 
-  private applyOrganizationNames(): void {
-    if (this.organizations.length === 0) {
-      return;
-    }
-
-    const names = new Map(
+  private enrichVehicles(): void {
+    const organizationNames = new Map(
       this.organizations.map(organization => [organization.id, organization.name])
     );
+    const driverNames = new Map(
+      this.drivers.map(driver => [driver.id, driver.fullName])
+    );
+
     this.vehicles = this.vehicles.map(vehicle => ({
       ...vehicle,
       ownerOrganizationName:
-        names.get(vehicle.ownerOrganizationId) || vehicle.ownerOrganizationName
+        vehicle.ownerOrganizationName?.trim() ||
+        organizationNames.get(vehicle.ownerOrganizationId) ||
+        '',
+      assignedDriverName:
+        vehicle.assignedDriverName?.trim() ||
+        (vehicle.assignedDriverId
+          ? driverNames.get(vehicle.assignedDriverId) ?? null
+          : null)
     }));
 
     if (this.selectedVehicle) {
