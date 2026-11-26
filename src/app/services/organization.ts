@@ -76,6 +76,12 @@ export class OrganizationService {
     organization: DirectoryOrganization,
     type: 'MANUFACTURER' | 'DISTRIBUTOR'
   ): Organization {
+    const contactName =
+      organization.contactName?.trim() ||
+      undefined;
+    const location =
+      organization.location?.trim() ||
+      undefined;
     return {
       ...organization,
       name:
@@ -85,6 +91,9 @@ export class OrganizationService {
         organization.legalName?.trim() ||
         organization.name?.trim() ||
         '',
+      contactName,
+      location,
+      userCount: organization.userCount ?? 0,
       type
     };
   }

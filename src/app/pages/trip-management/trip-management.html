@@ -110,14 +110,14 @@
             </td>
 
             <td>
-              <strong>{{ trip.vehicleRegistration }}</strong>
-              <small class="muted block">{{ trip.vehicleId }}</small>
+              <strong>{{ trip.vehicleRegistration || 'Unassigned' }}</strong>
+              <small class="muted block" *ngIf="trip.vehicleId">{{ trip.vehicleId }}</small>
             </td>
 
             <td>
               <span>{{ trip.driverName || 'Unassigned' }}</span>
-              <small class="muted block">
-                {{ trip.driverId || 'Unassigned' }}
+              <small class="muted block" *ngIf="trip.driverId">
+                {{ trip.driverId }}
               </small>
             </td>
 
