@@ -35,6 +35,9 @@ interface BackendDriver {
   approvalStatus?: string | null;
   driverApprovalStatus?: string | null;
   authorizations?: DriverCompanyAuthorization[] | null;
+  organizationId?: string | null;
+  organizationName?: string | null;
+  organizationType?: 'MANUFACTURER' | 'DISTRIBUTOR' | null;
   onboarding?: Driver['onboarding'] | null;
   licenseNumber?: string | null;
   licenseExpiryDate?: string | null;
@@ -173,6 +176,16 @@ export class DriverManagementService {
               ? 'REJECTED'
               : 'PENDING';
 
+    const createdAt =
+      driver.createdAt ??
+      driver.created_at ??
+      driver.registeredAt ??
+      user.createdAt ??
+      user.created_at ??
+      '';
+
+    const authorizations = this.mapAuthorizations(driver, user, createdAt);
+
     return {
       id: driver.id ?? user.id ?? '',
       fullName: driver.fullName ?? user.fullName ?? '',
@@ -182,12 +195,9 @@ export class DriverManagementService {
       nationalId: driver.nationalId ?? driver.national_id ??
         user.nationalId ?? user.national_id ?? '',
       status: normalizedStatus,
-      createdAt: driver.createdAt ?? driver.created_at ??
-        driver.registeredAt ?? '',
+      createdAt,
       notes: driver.notes ?? driver.internalNotes ?? '',
-      authorizations: Array.isArray(driver.authorizations)
-        ? driver.authorizations
-        : [],
+      authorizations,
       onboarding: driver.onboarding ?? {
         status: 'INVITATION_PENDING',
         smsDeliveryStatus: 'NOT_REQUESTED',
@@ -199,5 +209,40 @@ export class DriverManagementService {
       pendingPhoneNumber: driver.pendingPhoneNumber ?? '',
       pendingLicenseNumber: driver.pendingLicenseNumber ?? ''
     };
+  }
+
+  private mapAuthorizations(
+    driver: BackendDriver,
+    user: BackendDriver,
+    createdAt: string
+  ): DriverCompanyAuthorization[] {
+    if (Array.isArray(driver.authorizations) && driver.authorizations.length > 0) {
+      return driver.authorizations;
+    }
+
+    const organizationId =
+      driver.organizationId ?? user.organizationId ?? '';
+    const organizationName =
+      driver.organizationName ?? user.organizationName ?? '';
+
+    if (!organizationId && !organizationName) {
+      return [];
+    }
+
+    const organizationType =
+      driver.organizationType === 'MANUFACTURER' ||
+      user.organizationType === 'MANUFACTURER'
+        ? 'MANUFACTURER'
+        : 'DISTRIBUTOR';
+
+    return [
+      {
+        organizationId: String(organizationId),
+        organizationName: organizationName || 'Linked organization',
+        organizationType,
+        status: 'AUTHORIZED',
+        requestedAt: createdAt
+      }
+    ];
   }
 }

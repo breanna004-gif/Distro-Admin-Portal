@@ -89,12 +89,15 @@
                 </div>
                 <div class="vehicle-info">
                   <strong>{{ vehicle.registrationNumber }}</strong>
-                  <span>{{ vehicle.make }} {{ vehicle.model }} · {{ vehicle.year }}</span>
+                  <span>
+                    {{ vehicle.make }} {{ vehicle.model }}
+                    <ng-container *ngIf="vehicle.year"> · {{ vehicle.year }}</ng-container>
+                  </span>
                   <small>{{ typeLabel(vehicle.type) }}</small>
                 </div>
               </div>
             </td>
-            <td>{{ vehicle.ownerOrganizationName }}</td>
+            <td>{{ vehicle.ownerOrganizationName || '—' }}</td>
             <td>
               <strong class="capacity-value">{{ vehicle.maxWeightKg | number }} kg</strong>
               <span class="capacity-volume">{{ vehicle.cargoVolumeM3 }} m³</span>
@@ -188,7 +191,7 @@
           <select name="ownerOrganizationId" [(ngModel)]="form.ownerOrganizationId"
             required (ngModelChange)="onOrganizationChange()">
             <option value="" disabled>Select organization</option>
-            <option *ngFor="let organization of organizations" [value]="organization.id">
+            <option *ngFor="let organization of distributorOrganizations" [value]="organization.id">
               {{ organization.name }}
             </option>
           </select>
@@ -276,7 +279,10 @@
       <div>
         <p class="eyebrow">{{ vehicle.id }}</p>
         <h2 id="vehicle-details-title">{{ vehicle.registrationNumber }}</h2>
-        <p>{{ vehicle.make }} {{ vehicle.model }} · {{ vehicle.year }}</p>
+        <p>
+          {{ vehicle.make }} {{ vehicle.model }}
+          <ng-container *ngIf="vehicle.year"> · {{ vehicle.year }}</ng-container>
+        </p>
         <span class="status-pill" [ngClass]="'status-' + vehicle.status.toLowerCase()">
           <span class="status-dot"></span>{{ statusLabel(vehicle.status) }}
         </span>
